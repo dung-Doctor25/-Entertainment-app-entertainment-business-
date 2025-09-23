@@ -1,0 +1,181 @@
+{% load static %}
+{% csrf_token %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Car Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .car-card {
+            width: 150px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .status-pending { background-color: green; }
+        .status-timeout { background-color: red; }
+        .status-free { background-color: gray; }
+    </style>
+</head>
+<body class="container py-4">
+
+    <h2 class="mb-4">Car Dashboard</h2>
+    <div id="car-container" class="d-flex flex-wrap"></div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="carModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Update Car Order</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="carForm">
+              <input type="hidden" id="carId">
+              <div class="mb-3">
+                <label class="form-label">Status</label>
+                <select id="status" class="form-select">
+                  <option value="Pending">Pending</option>
+                  <option value="Timeout">Timeout</option>
+                  <option value="Free">Free</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Start Time</label>
+                <input type="datetime-local" id="start_time" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">End Time</label>
+                <input type="datetime-local" id="end_time" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Paied Time</label>
+                <input type="number" id="paied_time" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Money</label>
+                <input type="text" id="Money" class="form-control" readonly>
+              </div>
+              <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS + Fetch Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function loadCars() {
+            fetch("/car_data/")   // gọi API Django
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data);
+                    const container = document.getElementById("car-container");
+                    container.innerHTML = "";
+                    const now = new Date(); // thời gian hiện tại
+
+                    data.cars.forEach(car => {
+                        let statusClass = "status-free";
+                        if (car.status === "Pending") statusClass = "status-pending";
+                        if (car.end_time && new Date(car.end_time) <= now) {
+                            car.status = "Timeout";
+                        }
+                        if (car.status === "Timeout") statusClass = "status-timeout";
+
+                        const div = document.createElement("div");
+                        div.className = `car-card ${statusClass}`;
+                        div.innerText = car.name;
+                        div.onclick = () => openModal(car);
+                        container.appendChild(div);
+                    });
+                });
+        }
+
+        function openModal(car) {
+            document.getElementById("carId").value = car.id;
+            document.getElementById("status").value = car.status;
+            document.getElementById("start_time").value = car.start_time ? toDatetimeLocal(new Date(car.start_time)) : "";
+            document.getElementById("end_time").value = car.end_time ? toDatetimeLocal(new Date(car.end_time)) : "";
+            document.getElementById("paied_time").value = car.paied_time || "";
+            document.getElementById("Money").value = car.paied_time 
+            ? String(car.paied_time) + "k VND" 
+            : "";
+            const modal = new bootstrap.Modal(document.getElementById('carModal'));
+            modal.show();
+        }
+        function toDatetimeLocal(date) {
+            const offset = date.getTimezoneOffset();
+            const local = new Date(date.getTime() - (offset * 60 * 1000));
+            return local.toISOString().slice(0, 16);
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCars(); // load lần đầu
+            // Auto reload mỗi 15 giây
+            setInterval(loadCars, 30000);
+            console.log('hi');
+        });
+    </script>
+  
+    <script>
+    document.getElementById("carForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const status = document.getElementById("status").value;
+        const start_time = document.getElementById("start_time").value;
+        const end_time = document.getElementById("end_time").value;
+        const carId = document.getElementById("carId").value;
+        const paied_time = document.getElementById("paied_time").value;
+        
+        
+        fetch("http://127.0.0.1:8000/update_car/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({
+                carId, status, start_time, end_time, paied_time
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("Cập nhật thành công!");
+                const modal = bootstrap.Modal.getInstance(document.getElementById("carModal"));
+                modal.hide();
+                loadCars(); // reload list
+                console.log('hi');
+            } else {
+                alert("Lỗi: " + data.error);
+            }
+        });
+    });
+    
+
+    // Lấy CSRF cookie để fetch
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    </script>
+</body>
+</html>
