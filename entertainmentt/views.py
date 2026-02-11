@@ -51,63 +51,106 @@ def parse_datetime_local(dt_str):
         return timezone.make_aware(dt, timezone.get_current_timezone())
     except ValueError:
         return None
+import json
+from django.http import JsonResponse
+from django.utils import timezone
+from .models import Car, Order
+# Giả sử bạn đã import parse_datetime_local hoặc hàm tương tự
+
 def car_data_update(request):
     if request.method == "POST":
-        data = json.loads(request.body)
-        print(data)
-        status = data.get("status")
-        car_id = data.get("carId")
-        start_time = parse_datetime_local(data.get("start_time"))
-        end_time = parse_datetime_local(data.get("end_time"))
-        paied_time = data.get("paied_time")
+        try:
+            data = json.loads(request.body)
+            # print(data) 
+            status = data.get("status")
+            
+            # Lấy list ID
+            car_ids = data.get("carIds", [])
+            
+            # Nếu frontend gửi carId lẻ (code cũ), cũng gộp vào list luôn để xử lý chung
+            single_id = data.get("carId")
+            if single_id and single_id not in car_ids:
+                car_ids.append(single_id)
 
-        car = Car.objects.get(id=car_id)
-        latest_order = car.orders.order_by('-id').first()
-        if status == "Free":
+            # Hàm parse thời gian (giữ nguyên logic cũ của bạn)
+            start_time = parse_datetime_local(data.get("start_time"))
+            end_time = parse_datetime_local(data.get("end_time"))
+            paied_time = data.get("paied_time")
 
+            updated_count = 0 # Đếm số xe update thành công
 
-            now = timezone.localtime()  # giờ hiện tại theo múi giờ cài đặt
-            now = now.replace(second=0, microsecond=0)  # reset giây và micro giây
-            # Khi free: reset order
-            order = Order.objects.create(
-                car=car,
-                status=Order.Status.FREE,
-                start_time=now,   # thời gian hiện tại
-                end_time=None,
-                paied_time=0
-            )
-        elif status == "Pending":
+            # --- VÒNG LẶP XỬ LÝ TỪNG XE ---
+            for c_id in car_ids:
+                # 1. Kiểm tra ID rỗng hoặc None thì bỏ qua ngay
+                if not c_id: 
+                    continue
 
-            start_time = start_time if start_time else timezone.now()
-            start_time = start_time.replace(second=1, microsecond=0)  # reset
+                try:
+                    car = Car.objects.get(id=c_id)
+                    latest_order = car.orders.order_by('-id').first()
 
-            if latest_order :
-                # Cập nhật order hiện tại
-                latest_order.start_time = start_time if start_time else timezone.now()
-                latest_order.end_time = end_time if end_time else None
-                latest_order.paied_time = int(paied_time) if paied_time else 0
-                latest_order.status = Order.Status.PENDING
-                latest_order.save()
-
-        elif status == Order.Status.TIMEOUT:
-            # Nếu chọn timeout -> cập nhật order cuối thành TIMEOUT
-            if latest_order:
-                if latest_order.end_time == None or end_time == None:
-                    etime = timezone.localtime().replace(second=0, microsecond=0)
+                    # --- LOGIC CŨ CỦA BẠN ĐẶT VÀO ĐÂY ---
                     
-                elif latest_order.end_time is not None:
-                    etime = end_time 
-                    print('ok')
-                latest_order.end_time = etime
-                # Tính số phút đã trả
-                latest_order.start_time = start_time if start_time else latest_order.start_time
-                diff = latest_order.end_time - latest_order.start_time
-                latest_order.paied_time = int(diff.total_seconds() // 60)
-                latest_order.status = Order.Status.TIMEOUT
-                latest_order.save()
-        else:
-            raise ValidationError("Invalid status")
-        return JsonResponse({"success": True})
+                    # TRƯỜNG HỢP 1: FREE
+                    if status == "Free":
+                        now = timezone.localtime().replace(second=0, microsecond=0)
+                        Order.objects.create(
+                            car=car, status="Free", start_time=now, end_time=None, paied_time=0
+                        )
+
+                    # TRƯỜNG HỢP 2: PENDING
+                    elif status == "Pending":
+                        s_time = start_time if start_time else timezone.now().replace(second=0, microsecond=0)
+                        p_time = int(paied_time) if paied_time else 0
+
+                        if latest_order:
+                            latest_order.start_time = s_time
+                            latest_order.end_time = end_time if end_time else None
+                            latest_order.paied_time = p_time
+                            latest_order.status = "Pending"
+                            latest_order.save()
+                        else:
+                            Order.objects.create(
+                                car=car, status="Pending", start_time=s_time, end_time=end_time, paied_time=p_time
+                            )
+
+                    # TRƯỜNG HỢP 3: TIMEOUT
+                    elif status == "Timeout":
+                        etime = end_time if end_time else timezone.localtime().replace(second=0, microsecond=0)
+
+                        if latest_order:
+                            latest_order.end_time = etime
+                            if start_time: latest_order.start_time = start_time
+                            
+                            # Tính tiền
+                            diff = latest_order.end_time - latest_order.start_time
+                            latest_order.paied_time = int(diff.total_seconds() // 60)
+                            latest_order.status = "Timeout"
+                            latest_order.save()
+                        else:
+                            # Tạo mới nếu chưa có order
+                            s_time = start_time if start_time else timezone.now()
+                            diff = etime - s_time
+                            p_time = int(diff.total_seconds() // 60)
+                            Order.objects.create(
+                                car=car, status="Timeout", start_time=s_time, end_time=etime, paied_time=p_time
+                            )
+                    
+                    updated_count += 1 # Ghi nhận thành công
+
+                except Car.DoesNotExist:
+                    print(f"Cảnh báo: Không tìm thấy xe có ID {c_id}, bỏ qua.")
+                    continue # Bỏ qua xe lỗi, chạy tiếp xe sau
+                except Exception as e_inner:
+                    print(f"Lỗi khi update xe {c_id}: {e_inner}")
+                    continue
+
+            return JsonResponse({"success": True, "message": f"Đã cập nhật {updated_count} xe."})
+
+        except Exception as e:
+            print(f"Error Global: {e}")
+            return JsonResponse({"success": False, "error": str(e)})
+
     return JsonResponse({"success": False, "error": "Invalid method"})
 def car_dashboard(request):
     return render(request, "cars/dashboard.html")
