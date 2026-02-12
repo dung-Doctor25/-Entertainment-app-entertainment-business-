@@ -26,6 +26,8 @@ def car_data(request):
             status = latest_order.status
         else:
             status = Order.Status.FREE
+        image_url = car.image.url if car.image else None
+
         car_data.append({
             "id": car.id,
             "name": car.name,
@@ -35,6 +37,7 @@ def car_data(request):
             "start_time": start_time,
             "end_time": end_time,
             "paied_time": paied_time,
+            "image": image_url, # Trả về link ảnh
         })
     return JsonResponse({"cars": car_data})
 
@@ -56,42 +59,61 @@ from django.http import JsonResponse
 from django.utils import timezone
 from .models import Car, Order
 # Giả sử bạn đã import parse_datetime_local hoặc hàm tương tự
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 def car_data_update(request):
     if request.method == "POST":
         try:
-            data = json.loads(request.body)
-            # print(data) 
-            status = data.get("status")
+            # --- QUAN TRỌNG: Dùng request.POST vì Frontend gửi FormData (có file ảnh) ---
+            # Không dùng json.loads(request.body) ở đây nữa
             
-            # Lấy list ID
-            car_ids = data.get("carIds", [])
+            status = request.POST.get("status")
+            start_time_str = request.POST.get("start_time")
+            end_time_str = request.POST.get("end_time")
+            paied_time = request.POST.get("paied_time")
+            delete_image = request.POST.get("delete_image") == "true"
             
-            # Nếu frontend gửi carId lẻ (code cũ), cũng gộp vào list luôn để xử lý chung
-            single_id = data.get("carId")
-            if single_id and single_id not in car_ids:
-                car_ids.append(single_id)
+            # Lấy danh sách ID từ FormData (Frontend gửi carIds[])
+            car_ids = request.POST.getlist("carIds[]")
+            
+            # Fallback: Nếu không có list thì tìm id lẻ
+            if not car_ids:
+                single_id = request.POST.get("carId")
+                if single_id:
+                    car_ids = [single_id]
 
-            # Hàm parse thời gian (giữ nguyên logic cũ của bạn)
-            start_time = parse_datetime_local(data.get("start_time"))
-            end_time = parse_datetime_local(data.get("end_time"))
-            paied_time = data.get("paied_time")
+            # Parse thời gian
+            # (Bạn thay thế dòng này bằng hàm parse của bạn nếu cần)
+            start_time = parse_datetime_local(start_time_str) if start_time_str else None
+            end_time = parse_datetime_local(end_time_str) if end_time_str else None
 
-            updated_count = 0 # Đếm số xe update thành công
+            updated_count = 0 
 
             # --- VÒNG LẶP XỬ LÝ TỪNG XE ---
             for c_id in car_ids:
-                # 1. Kiểm tra ID rỗng hoặc None thì bỏ qua ngay
-                if not c_id: 
-                    continue
+                if not c_id: continue
 
                 try:
                     car = Car.objects.get(id=c_id)
+                    
+                    # --- 1. XỬ LÝ ẢNH ---
+                    # Nếu cờ xóa bật -> xóa ảnh cũ
+                    if delete_image and car.image:
+                        car.image.delete()
+                        car.image = None
+                        car.save()
+                    
+                    # Nếu có file mới gửi lên -> lưu đè
+                    if 'imageFile' in request.FILES:
+                        car.image = request.FILES['imageFile']
+                        car.save()
+                    # --------------------
+
+                    # --- 2. XỬ LÝ ORDER ---
                     latest_order = car.orders.order_by('-id').first()
 
-                    # --- LOGIC CŨ CỦA BẠN ĐẶT VÀO ĐÂY ---
-                    
-                    # TRƯỜNG HỢP 1: FREE
+                    # TRƯỜNG HỢP 1: FREE (Luôn tạo mới để reset)
                     if status == "Free":
                         now = timezone.localtime().replace(second=0, microsecond=0)
                         Order.objects.create(
@@ -110,6 +132,7 @@ def car_data_update(request):
                             latest_order.status = "Pending"
                             latest_order.save()
                         else:
+                            # [MỚI] Chưa có order -> Tạo mới
                             Order.objects.create(
                                 car=car, status="Pending", start_time=s_time, end_time=end_time, paied_time=p_time
                             )
@@ -123,26 +146,28 @@ def car_data_update(request):
                             if start_time: latest_order.start_time = start_time
                             
                             # Tính tiền
-                            diff = latest_order.end_time - latest_order.start_time
-                            latest_order.paied_time = int(diff.total_seconds() // 60)
+                            if latest_order.start_time:
+                                diff = latest_order.end_time - latest_order.start_time
+                                latest_order.paied_time = int(diff.total_seconds() // 60)
+                            
                             latest_order.status = "Timeout"
                             latest_order.save()
                         else:
-                            # Tạo mới nếu chưa có order
+                            # [MỚI] Chưa có order -> Tạo mới (tính toán dựa trên input gửi lên)
                             s_time = start_time if start_time else timezone.now()
                             diff = etime - s_time
                             p_time = int(diff.total_seconds() // 60)
+                            
                             Order.objects.create(
                                 car=car, status="Timeout", start_time=s_time, end_time=etime, paied_time=p_time
                             )
                     
-                    updated_count += 1 # Ghi nhận thành công
+                    updated_count += 1
 
                 except Car.DoesNotExist:
-                    print(f"Cảnh báo: Không tìm thấy xe có ID {c_id}, bỏ qua.")
-                    continue # Bỏ qua xe lỗi, chạy tiếp xe sau
+                    continue # Bỏ qua xe lỗi
                 except Exception as e_inner:
-                    print(f"Lỗi khi update xe {c_id}: {e_inner}")
+                    print(f"Lỗi xe {c_id}: {e_inner}")
                     continue
 
             return JsonResponse({"success": True, "message": f"Đã cập nhật {updated_count} xe."})
@@ -152,5 +177,68 @@ def car_data_update(request):
             return JsonResponse({"success": False, "error": str(e)})
 
     return JsonResponse({"success": False, "error": "Invalid method"})
+@csrf_exempt
+def swap_car(request):
+    """
+    Chuyển đổi Order đang chạy từ xe nguồn sang xe đích.
+    LOGIC MỚI: Tạo Order mới cho xe đích thay vì update Order cũ để tránh lỗi ID cũ < ID Free mới.
+    """
+    if request.method == "POST":
+        try:
+            source_id = request.POST.get("source_id")
+            target_id = request.POST.get("target_id")
+
+            if not source_id or not target_id:
+                return JsonResponse({"success": False, "error": "Thiếu thông tin xe"})
+
+            # Lấy xe
+            try:
+                source_car = Car.objects.get(id=source_id)
+                target_car = Car.objects.get(id=target_id)
+            except Car.DoesNotExist:
+                return JsonResponse({"success": False, "error": "Xe không tồn tại"})
+
+            # Lấy Order đang chạy của xe nguồn
+            source_order = source_car.orders.order_by('-id').first()
+
+            if not source_order or source_order.status == "Free":
+                return JsonResponse({"success": False, "error": "Xe nguồn đang trống, không thể đổi."})
+
+            # Kiểm tra xe đích có đang trống không
+            target_order = target_car.orders.order_by('-id').first()
+            if target_order and target_order.status != "Free":
+                 return JsonResponse({"success": False, "error": "Xe đích đang có khách, vui lòng chọn xe khác."})
+
+            # --- THỰC HIỆN ĐỔI XE (LOGIC MỚI) ---
+            
+            # 1. Tạo một Order MỚI HOÀN TOÀN cho xe đích (Copy dữ liệu từ order nguồn)
+            # Việc này đảm bảo ID của order mới > ID của các order Free cũ
+            Order.objects.create(
+                car=target_car,
+                status=source_order.status,       # Giữ nguyên trạng thái (Pending/Timeout)
+                start_time=source_order.start_time, # Giữ nguyên giờ vào
+                end_time=source_order.end_time,     # Giữ nguyên giờ ra (nếu có)
+                paied_time=source_order.paied_time  # Giữ nguyên tiền đã trả
+            )
+
+            # 2. Đưa xe nguồn về trạng thái Free
+            # Tạo order Free mới cho xe nguồn để kết thúc phiên làm việc tại xe này
+            now = timezone.localtime().replace(second=0, microsecond=0)
+            Order.objects.create(
+                car=source_car,
+                status="Free",
+                start_time=now,
+                end_time=None,
+                paied_time=0
+            )
+
+            return JsonResponse({"success": True})
+
+        except Exception as e:
+            print(f"Swap Error: {e}")
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid method"})
+
 def car_dashboard(request):
     return render(request, "cars/dashboard.html")

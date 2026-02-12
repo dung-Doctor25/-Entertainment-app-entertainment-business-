@@ -9,6 +9,7 @@ class Car(models.Model):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
     color = models.CharField(max_length=50)
+    image = models.ImageField(upload_to='car_images/', null=True, blank=True)
 
     def __str__(self):
         return f" {self.name} {self.type} ({self.color})"

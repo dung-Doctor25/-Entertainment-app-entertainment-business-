@@ -11,283 +11,190 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body {
-            background-color: #f4f6f9;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding-bottom: 80px;
-        }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding-bottom: 80px; }
+        
+        .app-header { background: white; padding: 15px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
+        .app-title { font-size: 1.25rem; font-weight: 700; color: #2c3e50; margin: 0; }
 
-        /* Header Style */
-        .app-header {
-            background: white;
-            padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .app-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin: 0;
-        }
+        .group-section { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .type-header { font-size: 1.1rem; font-weight: 700; color: #2c3e50; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; display: flex; align-items: center; text-transform: uppercase; }
 
-        /* Car Card Style Mobile */
-        .car-card {
-            background: white;
-            border-radius: 16px;
-            padding: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-            border: 2px solid transparent;
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
+        .car-card { background: #f8f9fa; border-radius: 12px; padding: 10px; border: 2px solid transparent; transition: transform 0.2s; cursor: pointer; position: relative; overflow: hidden; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .car-card:active { transform: scale(0.96); }
+        
+        .car-thumb-box { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; margin-bottom: 8px; border: 2px solid #dee2e6; background: #fff; display: flex; align-items: center; justify-content: center; }
+        .car-thumb-img { width: 100%; height: 100%; object-fit: cover; }
+        .car-icon-default { font-size: 1.8rem; color: #adb5bd; }
 
-        .car-card:active {
-            transform: scale(0.96);
-        }
+        .car-name { font-weight: 700; font-size: 1rem; color: #333; margin-bottom: 2px; line-height: 1.2; }
+        .car-end-time { font-size: 0.8rem; color: #6c757d; margin-bottom: 5px; font-weight: 500; }
+        .car-status-badge { font-size: 0.75rem; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
 
-        .car-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            transition: color 0.3s;
-        }
-
-        .car-name {
-            font-weight: 700;
-            font-size: 1rem;
-            color: #333;
-            margin-bottom: 5px;
-            line-height: 1.4;
-        }
-
-        .car-status-badge {
-            font-size: 0.75rem;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-
-        /* Status Colors */
-        .card-pending { border-color: #198754; background: #f0fff4; }
-        .card-pending .car-icon { color: #198754; }
+        .card-pending { border-color: #198754; background: #e8f5e9; }
         .card-pending .car-status-badge { background: #198754; color: white; }
-
-        .card-timeout { border-color: #dc3545; background: #fff5f5; }
-        .card-timeout .car-icon { color: #dc3545; }
+        .card-timeout { border-color: #dc3545; background: #ffebee; }
         .card-timeout .car-status-badge { background: #dc3545; color: white; }
-
-        .card-free { border-color: #e9ecef; }
-        .card-free .car-icon { color: #6c757d; }
+        .card-free { border-color: #dee2e6; background: #fff; }
         .card-free .car-status-badge { background: #e9ecef; color: #6c757d; }
 
-        /* Offcanvas customization */
-        .offcanvas-bottom {
-            height: auto !important;
-            max-height: 90vh; 
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-        }
-        .form-control-lg, .form-select-lg {
-            font-size: 1rem;
-            padding: 0.75rem 1rem;
-        }
-        
-        input[type="time"] {
-            font-size: 1.2rem;
-            padding: 10px;
-        }
-        
-        /* Guide Modal Content */
-        .guide-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-        .guide-color-box {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            margin-right: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        .guide-step-box {
-            background-color: #fff;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        .guide-step-title {
-            font-weight: bold;
-            color: #0d6efd;
-            margin-bottom: 5px;
-            display: block;
-        }
+        .lightbox-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+        .lightbox-overlay.active { display: flex; opacity: 1; }
+        .lightbox-img { max-width: 90%; max-height: 90%; border-radius: 8px; }
+        .lightbox-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer; }
 
-        /* Multi Select List Style */
-        .multi-select-container {
-            max-height: 150px;
-            overflow-y: auto;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            background: #f8f9fa;
-            padding: 5px;
-        }
+        .upload-area { border: 2px dashed #ced4da; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; position: relative; background: #f8f9fa; }
+        .upload-preview { width: 100%; height: 150px; object-fit: contain; display: none; margin-bottom: 10px; border-radius: 8px; }
+        .btn-delete-img { position: absolute; top: 5px; right: 5px; font-size: 0.8rem; padding: 2px 8px; display: none; }
+
+        .offcanvas-bottom { height: auto !important; max-height: 90vh; border-top-left-radius: 20px; border-top-right-radius: 20px; }
+        .time-input-group { display: flex; align-items: center; gap: 5px; }
+        .time-input-box { flex: 1; text-align: center; font-size: 1.2rem; padding: 10px; font-weight: bold; }
         
-        .car-checkbox-item {
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-            position: relative; /* Fix lỗi click */
-        }
-        
+        .multi-select-container { max-height: 150px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa; padding: 5px; }
+        .car-checkbox-item { display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #eee; position: relative; }
         .car-checkbox-item:last-child { border-bottom: none; }
         .form-check-input { width: 1.3em; height: 1.3em; margin-right: 10px; }
         .small-icon { width: 25px; text-align: center; margin-right: 5px; color: #6c757d; }
+
+        .settings-list { max-height: 60vh; overflow-y: auto; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .form-switch .form-check-input { width: 2.5em; height: 1.25em; }
+
+        /* Style cho phần Đổi xe */
+        .swap-section { background: #e3f2fd; border-radius: 8px; padding: 10px; margin-bottom: 15px; border: 1px dashed #0d6efd; display: none; }
     </style>
 </head>
 <body>
 
     <div class="app-header">
         <h1 class="app-title"><i class="fas fa-parking me-2 text-primary"></i>Quản Lý Xe</h1>
-        
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#guideModal">
-                <i class="fas fa-question"></i>
-            </button>
-            
-            <button class="btn btn-light btn-sm rounded-circle" onclick="loadCars()">
-                <i class="fas fa-sync-alt"></i>
-            </button>
+            <button class="btn btn-outline-secondary btn-sm rounded-circle" onclick="openSettingsModal()"><i class="fas fa-cog"></i></button>
+            <button class="btn btn-outline-primary btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#guideModal"><i class="fas fa-question"></i></button>
+            <button class="btn btn-light btn-sm rounded-circle" onclick="loadCars()"><i class="fas fa-sync-alt"></i></button>
         </div>
     </div>
 
     <div class="container mt-3">
-        <div id="car-container" class="row g-3">
-            </div>
+        <div id="car-container"></div>
     </div>
 
-    <div class="modal fade" id="guideModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
+        <i class="fas fa-times lightbox-close"></i>
+        <img id="lightbox-img" class="lightbox-img" src="" alt="Full Image">
+    </div>
+
+    <div class="modal fade" id="settingsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold"><i class="fas fa-book-open me-2"></i>Hướng Dẫn Sử Dụng</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title fw-bold"><i class="fas fa-eye me-2"></i>Chọn Xe Hiển Thị</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+                <div class="modal-body">
+                    <div id="settingsList" class="settings-list"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSettings()">Lưu Cấu Hình</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="guideModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title fw-bold">Hướng Dẫn</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
                     <h6 class="fw-bold mb-3 border-bottom pb-2">1. Ý nghĩa trạng thái:</h6>
                     <div class="row g-2 mb-4">
-                        <div class="col-12">
-                            <div class="guide-item">
-                                <div class="guide-color-box bg-secondary text-white"><i class="fas fa-car"></i></div>
-                                <div><div class="fw-bold">Màu Xám (Trống)</div><small class="text-muted">Vị trí chưa có xe.</small></div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="guide-item">
-                                <div class="guide-color-box bg-success text-white"><i class="fas fa-car"></i></div>
-                                <div><div class="fw-bold">Màu Xanh (Đang chơi)</div><small class="text-muted">Xe đang chơi, còn thời gian.</small></div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="guide-item">
-                                <div class="guide-color-box bg-danger text-white"><i class="fas fa-clock"></i></div>
-                                <div><div class="fw-bold">Màu Đỏ (Quá giờ)</div><small class="text-muted">Xe đã quá giờ ra dự kiến.</small></div>
-                            </div>
-                        </div>
+                        <div class="col-12"><div class="guide-item"><div class="guide-color-box bg-secondary text-white"><i class="fas fa-car"></i></div><div><div class="fw-bold">Màu Xám</div><small>Xe Trống</small></div></div></div>
+                        <div class="col-12"><div class="guide-item"><div class="guide-color-box bg-success text-white"><i class="fas fa-car"></i></div><div><div class="fw-bold">Màu Xanh</div><small>Đang Chơi</small></div></div></div>
+                        <div class="col-12"><div class="guide-item"><div class="guide-color-box bg-danger text-white"><i class="fas fa-clock"></i></div><div><div class="fw-bold">Màu Đỏ</div><small>Quá Giờ</small></div></div></div>
                     </div>
-
                     <h6 class="fw-bold mb-3 border-bottom pb-2">2. Cách thao tác chuẩn:</h6>
-                    
-                    <div class="guide-step-box">
-                        <span class="guide-step-title"><i class="fas fa-undo me-1"></i> Đặt lại xe trống</span>
-                        <ul class="mb-0 small ps-3">
-                            <li>Mở xe &rarr; Chọn <strong>Trống (Free)</strong> &rarr; Nhấn <strong>Lưu</strong>.</li>
-                        </ul>
-                    </div>
-
-                    <div class="guide-step-box">
-                        <span class="guide-step-title"><i class="fas fa-money-bill-wave me-1"></i> Trường hợp 1: Khách trả tiền trước</span>
-                        <ul class="mb-0 small ps-3">
-                            <li><strong>B1:</strong> Chọn xe &rarr; Chọn <strong>Giờ vào</strong>.</li>
-                            <li><strong>B2:</strong> Nhập số phút/giờ vào ô <strong>Giờ đã thanh toán</strong>.</li>
-                            <li><strong>B3:</strong> Nhấn <strong>Lưu</strong>. (Nếu sai mở lên sửa lại).</li>
-                        </ul>
-                    </div>
-
-                    <div class="guide-step-box">
-                        <span class="guide-step-title"><i class="fas fa-history me-1"></i> Trường hợp 2: Khách trả tiền sau</span>
-                        <ul class="mb-0 small ps-3">
-                            <li><strong>B1 (Vào):</strong> Mở xe &rarr; Chọn <strong>Giờ vào</strong> &rarr; Lưu.</li>
-                            <li><strong>B2 (Ra):</strong> Mở xe &rarr; Chuyển sang <strong>Quá giờ (Timeout)</strong> &rarr; Lưu.</li>
-                            <li><strong>B3:</strong> Xem lại số tiền cần thu.</li>
-                        </ul>
-                    </div>
+                    <div class="guide-step-box"><span class="guide-step-title">Đặt lại xe trống</span><ul class="mb-0 small ps-3"><li>Chọn <strong>Trống</strong> &rarr; Lưu.</li></ul></div>
+                    <div class="guide-step-box"><span class="guide-step-title">Khách trả trước</span><ul class="mb-0 small ps-3"><li>Chọn Giờ vào &rarr; Nhập Phút &rarr; Lưu.</li></ul></div>
+                    <div class="guide-step-box"><span class="guide-step-title">Khách trả sau</span><ul class="mb-0 small ps-3"><li>Vào: Chọn Giờ vào &rarr; Lưu.</li><li>Ra: Chọn Quá giờ &rarr; Lưu.</li></ul></div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">Đã hiểu</button>
-                </div>
+                <div class="modal-footer"><button class="btn btn-primary w-100" data-bs-dismiss="modal">Đã hiểu</button></div>
             </div>
         </div>
     </div>
 
-    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="carOffcanvas" aria-labelledby="carOffcanvasLabel">
+    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="carOffcanvas">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title fw-bold" id="carOffcanvasLabel"></h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body small pb-5">
-            <form id="carForm">
+            <form id="carForm" enctype="multipart/form-data">
                 <input type="hidden" id="carId">
-                
+                <input type="hidden" id="deleteImageFlag" name="delete_image" value="false">
+
+                <div class="mb-3">
+                    <label class="form-label text-muted fw-bold small">HÌNH ẢNH XE</label>
+                    <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+                        <input type="file" id="imageInput" name="imageFile" hidden accept="image/*" onchange="previewImage(this)">
+                        <img id="imgPreview" class="upload-preview" alt="Preview">
+                        <div id="uploadPlaceholder">
+                            <i class="fas fa-camera fa-2x text-muted mb-2"></i><div class="small text-muted">Chạm để tải ảnh lên</div>
+                        </div>
+                        <button type="button" id="btnDeleteImg" class="btn btn-danger btn-sm btn-delete-img" onclick="removeImage(event)"><i class="fas fa-trash"></i> Xóa</button>
+                    </div>
+                </div>
+
                 <div class="mb-3">
                     <label class="form-label text-muted fw-bold small">TRẠNG THÁI</label>
-                    <select id="status" class="form-select form-select-lg shadow-sm">
-                        <option value="Pending">🟢 Đang chơi </option>
-                        <option value="Timeout">🔴 Quá giờ </option>
-                        <option value="Free">⚪ Trống </option>
+                    <select id="status" class="form-select form-select-lg shadow-sm" onchange="toggleSwapButton()">
+                        <option value="Pending">🟢 Đang chơi</option>
+                        <option value="Timeout">🔴 Quá giờ</option>
+                        <option value="Free">⚪ Trống</option>
                     </select>
                 </div>
 
+                <div id="swapContainer">
+                    <div class="d-flex justify-content-end mb-3">
+                        <button type="button" class="btn btn-warning btn-sm" onclick="toggleSwapSection()">
+                            <i class="fas fa-exchange-alt me-1"></i> Đổi sang xe khác
+                        </button>
+                    </div>
+                    <div id="swapSection" class="swap-section">
+                        <label class="form-label fw-bold small text-primary">CHỌN XE MUỐN CHUYỂN ĐẾN:</label>
+                        <select id="targetCarSelect" class="form-select mb-2"></select>
+                        <button type="button" class="btn btn-primary w-100" onclick="executeSwap()">Xác nhận Đổi Xe</button>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-6 mb-3">
-                        <label class="form-label text-muted fw-bold small">GIỜ VÀO (Hôm nay)</label>
-                        <input type="time" id="start_time" class="form-control shadow-sm">
+                        <label class="form-label text-muted fw-bold small">GIỜ VÀO</label>
+                        <div class="time-input-group">
+                            <input type="number" id="start_h" class="form-control time-input-box" placeholder="H" min="0" max="23">
+                            <span class="time-separator">:</span>
+                            <input type="number" id="start_m" class="form-control time-input-box" placeholder="M" min="0" max="59">
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="setNow('start')"><i class="fas fa-clock me-1"></i>Hiện tại</button>
                     </div>
                     <div class="col-6 mb-3">
-                        <label class="form-label text-muted fw-bold small">GIỜ RA (Hôm nay)</label>
-                        <input type="time" id="end_time" class="form-control shadow-sm">
+                        <label class="form-label text-muted fw-bold small">GIỜ RA</label>
+                        <div class="time-input-group">
+                            <input type="number" id="end_h" class="form-control time-input-box" placeholder="H" min="0" max="23">
+                            <span class="time-separator">:</span>
+                            <input type="number" id="end_m" class="form-control time-input-box" placeholder="M" min="0" max="59">
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="setNow('end')"><i class="fas fa-clock me-1"></i>Hiện tại</button>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label text-muted fw-bold small">PHÚT ĐÃ THANH TOÁN</label>
                     <div class="input-group shadow-sm">
-                        <input type="number" id="paied_time" class="form-control form-control-lg" placeholder="Số phút..." inputmode="numeric">
+                        <input type="number" id="paied_time" class="form-control form-control-lg" placeholder="Nhập phút...">
                         <span class="input-group-text">Phút</span>
                     </div>
                 </div>
-
+                
                 <div class="mb-3">
                     <label class="form-label text-muted fw-bold small">TẠM TÍNH</label>
                     <div class="input-group shadow-sm">
@@ -298,34 +205,58 @@
 
                 <div class="mb-4">
                     <label class="form-label text-muted fw-bold small">ÁP DỤNG THÊM CHO:</label>
-                    <div id="multiSelectContainer" class="multi-select-container">
-                        </div>
-                    <div class="form-text small text-end"><i class="fas fa-info-circle"></i> Chỉ hiển thị các xe đang TRỐNG</div>
+                    <div id="multiSelectContainer" class="multi-select-container"></div>
+                    <div class="form-text small text-end"><i class="fas fa-info-circle"></i> Chỉ hiển thị các xe TRỐNG và đang BẬT</div>
                 </div>
 
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow">
-                        <i class="fas fa-save me-2"></i>Lưu Thay Đổi
-                    </button>
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow"><i class="fas fa-save me-2"></i>Lưu Thay Đổi</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
         let carOffcanvas;
+        let settingsModal;
         let globalCarsData = []; 
+        let visibleCarIds = [];
 
         document.addEventListener("DOMContentLoaded", () => {
-            const offcanvasElement = document.getElementById('carOffcanvas');
-            carOffcanvas = new bootstrap.Offcanvas(offcanvasElement);
-
+            carOffcanvas = new bootstrap.Offcanvas(document.getElementById('carOffcanvas'));
+            settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
+            loadSettings(); 
             loadCars(); 
             setInterval(loadCars, 30000);
         });
 
+        // --- CẤU HÌNH ---
+        function loadSettings() {
+            const saved = localStorage.getItem('visibleCarIds');
+            visibleCarIds = saved ? JSON.parse(saved) : null;
+        }
+        function openSettingsModal() {
+            const container = document.getElementById('settingsList'); container.innerHTML = "";
+            if (!globalCarsData.length) { container.innerHTML = "Loading..."; return; }
+            globalCarsData.forEach(car => {
+                const isChecked = (visibleCarIds === null) || visibleCarIds.includes(car.id);
+                const fullName = `${car.type} - ${car.name}`;
+                container.innerHTML += `<div class="setting-item"><span class="fw-bold">${fullName}</span><div class="form-check form-switch"><input class="form-check-input setting-switch" type="checkbox" value="${car.id}" ${isChecked ? 'checked' : ''}></div></div>`;
+            });
+            settingsModal.show();
+        }
+        function saveSettings() {
+            const switches = document.querySelectorAll('.setting-switch');
+            const newVisibleIds = [];
+            switches.forEach(sw => { if (sw.checked) newVisibleIds.push(parseInt(sw.value)); });
+            visibleCarIds = newVisibleIds;
+            localStorage.setItem('visibleCarIds', JSON.stringify(visibleCarIds));
+            settingsModal.hide(); renderDashboard(); 
+        }
+        function isCarVisible(id) { return visibleCarIds === null || visibleCarIds.includes(id); }
+
+        // --- UTILS ---
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== "") {
@@ -340,213 +271,249 @@
             }
             return cookieValue;
         }
-
-        function formatCarName(car) {
-            let type = car.type ? car.type + " " : ""; 
-            let color = car.color ? ` (${car.color})` : "";
-            return `${car.name} ${type}${color}`;
-        }
-
-        // --- HÀM XÁC ĐỊNH ICON XE ---
+        function formatCarNameShort(car) { return `${car.name} ${car.color ? '('+car.color+')' : ''}`; }
         function getIconForCar(type) {
-            if (!type) return "fa-car"; // Mặc định là ô tô
+            if (!type) return "fa-car";
             const t = type.toLowerCase();
-            // Nếu có chữ "máy" hoặc "2 bánh" hoặc "moto" -> icon Xe máy
-            if (t.includes("máy") || t.includes("2 bánh") || t.includes("moto")) {
-                return "fa-motorcycle";
-            }
-            // Mặc định còn lại là ô tô
-            return "fa-car";
+            return (t.includes("máy") || t.includes("2 bánh") || t.includes("moto")) ? "fa-motorcycle" : "fa-car";
         }
-
-        function loadCars() {
-            fetch("/car_data/")
-                .then(res => res.json())
-                .then(data => {
-                    const container = document.getElementById("car-container");
-                    container.innerHTML = "";
-                    const now = new Date();
-
-                    data.cars.sort((a, b) => {
-                        const nameA = a.name || "";
-                        const nameB = b.name || "";
-                        const nameCompare = nameA.localeCompare(nameB);
-                        if (nameCompare !== 0) return nameCompare;
-                        const typeA = a.type || "";
-                        const typeB = b.type || "";
-                        const typeCompare = typeA.localeCompare(typeB);
-                        if (typeCompare !== 0) return typeCompare;
-                        return (a.color || "").localeCompare(b.color || "");
-                    });
-
-                    globalCarsData = data.cars;
-
-                    data.cars.forEach(car => {
-                        let cardClass = "card-free";
-                        let statusText = "Trống";
-                        
-                        // Xử lý Icon
-                        let iconClass = getIconForCar(car.type);
-
-                        if (car.status === "Pending") {
-                            cardClass = "card-pending"; statusText = "Đang chơi";
-                        }
-                        
-                        if (car.end_time && new Date(car.end_time) <= now) car.status = "Timeout";
-                        if (car.status === "Timeout") {
-                            cardClass = "card-timeout"; statusText = "Quá giờ"; iconClass = "fa-clock";
-                        }
-
-                        const fullName = formatCarName(car);
-
-                        const colDiv = document.createElement("div");
-                        colDiv.className = "col-6 col-md-4 col-lg-3"; 
-
-                        colDiv.innerHTML = `
-                            <div class="car-card ${cardClass}" onclick='openEditor(${JSON.stringify(car).replace(/'/g, "&#39;")})'>
-                                <i class="fas ${iconClass} car-icon"></i>
-                                <div class="car-name">${fullName}</div>
-                                <div class="car-status-badge">${statusText}</div>
-                            </div>
-                        `;
-                        container.appendChild(colDiv);
-                    });
-                })
-                .catch(err => console.error("Lỗi:", err));
-        }
-
-        function extractTime(isoString) {
+        function formatTimeDisplay(isoString) {
             if (!isoString) return "";
-            const date = new Date(isoString);
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            return `${hours}:${minutes}`;
+            const d = new Date(isoString);
+            return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
         }
-
+        function fillTimeInputs(isoString, prefix) {
+            if (!isoString) { document.getElementById(`${prefix}_h`).value = ""; document.getElementById(`${prefix}_m`).value = ""; return; }
+            const d = new Date(isoString);
+            document.getElementById(`${prefix}_h`).value = d.getHours();
+            document.getElementById(`${prefix}_m`).value = d.getMinutes();
+        }
+        function setNow(prefix) {
+            const d = new Date();
+            document.getElementById(`${prefix}_h`).value = d.getHours();
+            document.getElementById(`${prefix}_m`).value = d.getMinutes();
+        }
+        function getTimeFromInputs(prefix) {
+            let h = document.getElementById(`${prefix}_h`).value;
+            let m = document.getElementById(`${prefix}_m`).value;
+            if (h === "" || m === "") return "";
+            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+        }
         function combineTodayWithTime(timeStr) {
             if (!timeStr) return "";
             const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}T${timeStr}`;
+            return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}T${timeStr}`;
+        }
+
+        // --- IMAGE ---
+        function showLightbox(url) { document.getElementById('lightbox-img').src = url; document.getElementById('lightbox').classList.add('active'); }
+        function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); }
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imgPreview').src = e.target.result;
+                    document.getElementById('imgPreview').style.display = 'block';
+                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                    document.getElementById('btnDeleteImg').style.display = 'block';
+                    document.getElementById('deleteImageFlag').value = 'false';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        function removeImage(e) {
+            e.stopPropagation();
+            document.getElementById('imageInput').value = "";
+            document.getElementById('imgPreview').src = "";
+            document.getElementById('imgPreview').style.display = 'none';
+            document.getElementById('uploadPlaceholder').style.display = 'block';
+            document.getElementById('btnDeleteImg').style.display = 'none';
+            document.getElementById('deleteImageFlag').value = 'true';
+        }
+
+        // --- CORE LOGIC ---
+        function loadCars() {
+            fetch("/car_data/").then(res => res.json()).then(data => {
+                data.cars.sort((a, b) => {
+                    const typeA = a.type || "Khác", typeB = b.type || "Khác";
+                    if (typeA.localeCompare(typeB) !== 0) return typeA.localeCompare(typeB);
+                    return a.name.localeCompare(b.name);
+                });
+                globalCarsData = data.cars; renderDashboard(); 
+            }).catch(err => console.error("Lỗi:", err));
+        }
+
+        function renderDashboard() {
+            const container = document.getElementById("car-container"); container.innerHTML = "";
+            const now = new Date();
+            const groupedCars = {};
+            globalCarsData.forEach(car => {
+                if (!isCarVisible(car.id)) return;
+                const type = car.type || "Khác";
+                if (!groupedCars[type]) groupedCars[type] = [];
+                groupedCars[type].push(car);
+            });
+
+            if (Object.keys(groupedCars).length === 0) { container.innerHTML = `<div class="text-center text-muted mt-5">Không có xe hiển thị.</div>`; return; }
+
+            for (const [type, cars] of Object.entries(groupedCars)) {
+                const section = document.createElement("div"); section.className = "group-section";
+                section.innerHTML = `<div class="type-header"><i class="fas ${getIconForCar(type)} me-2 text-primary"></i> ${type}</div>`;
+                const row = document.createElement("div"); row.className = "row g-3";
+
+                cars.forEach(car => {
+                    let cardClass = "card-free", statusText = "Trống";
+                    if (car.status === "Pending") { cardClass = "card-pending"; statusText = "Đang chơi"; }
+                    if (car.end_time && new Date(car.end_time) <= now) car.status = "Timeout";
+                    if (car.status === "Timeout") { cardClass = "card-timeout"; statusText = "Quá giờ"; }
+
+                    const thumbHtml = car.image ? `<div class="car-thumb-box" onclick="event.stopPropagation();showLightbox('${car.image}')"><img src="${car.image}" class="car-thumb-img"></div>` : `<div class="car-icon-default mb-2"><i class="fas ${getIconForCar(car.type)}"></i></div>`;
+                    
+                    row.innerHTML += `<div class="col-6 col-md-4 col-lg-3"><div class="car-card ${cardClass}" onclick='openEditor(${JSON.stringify(car).replace(/'/g, "&#39;")})'>${thumbHtml}<div class="car-name">${formatCarNameShort(car)}</div><div class="car-end-time">${car.end_time ? "Ra: "+formatTimeDisplay(car.end_time) : ""}</div><div class="car-status-badge">${statusText}</div></div></div>`;
+                });
+                section.appendChild(row); container.appendChild(section);
+            }
+        }
+
+        // --- SWAP LOGIC ---
+        function toggleSwapButton() {
+            const status = document.getElementById("status").value;
+            const container = document.getElementById("swapContainer");
+            // Chỉ hiện nút đổi xe khi đang Chơi hoặc Timeout
+            if (status === "Pending" || status === "Timeout") {
+                container.style.display = "block";
+            } else {
+                container.style.display = "none";
+                document.getElementById("swapSection").style.display = "none"; // Ẩn luôn phần chọn nếu chuyển sang Free
+            }
+        }
+
+        function toggleSwapSection() {
+            const section = document.getElementById("swapSection");
+            section.style.display = (section.style.display === "none" || section.style.display === "") ? "block" : "none";
+        }
+
+        function executeSwap() {
+            const sourceId = document.getElementById("carId").value;
+            const targetId = document.getElementById("targetCarSelect").value;
+
+            if (!targetId) { alert("Vui lòng chọn xe để chuyển đến!"); return; }
+            if (!confirm("Bạn có chắc chắn muốn chuyển trạng thái sang xe này?")) return;
+
+            const formData = new FormData();
+            formData.append("source_id", sourceId);
+            formData.append("target_id", targetId);
+
+            // Nút đang xử lý
+            const btn = document.querySelector("#swapSection button");
+            const oldText = btn.innerHTML;
+            btn.innerHTML = "Đang xử lý..."; btn.disabled = true;
+
+            fetch("/swap_car/", { method: "POST", headers: { "X-CSRFToken": getCookie("csrftoken") }, body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Đổi xe thành công!");
+                    carOffcanvas.hide();
+                    loadCars();
+                } else {
+                    alert("Lỗi: " + data.error);
+                }
+            })
+            .catch(err => alert("Lỗi kết nối!"))
+            .finally(() => { btn.innerHTML = oldText; btn.disabled = false; });
         }
 
         function openEditor(car) {
-            const fullName = formatCarName(car);
+            const fullNameShort = formatCarNameShort(car);
             const icon = getIconForCar(car.type);
-            document.getElementById('carOffcanvasLabel').innerHTML = `<i class="fas ${icon} me-2"></i>${fullName}`;
+            document.getElementById('carOffcanvasLabel').innerHTML = `<i class="fas ${icon} me-2"></i>${fullNameShort}`;
             
             document.getElementById("carId").value = car.id;
             document.getElementById("status").value = car.status;
             
-            document.getElementById("start_time").value = extractTime(car.start_time);
-            document.getElementById("end_time").value = extractTime(car.end_time);
-            
+            fillTimeInputs(car.start_time, 'start');
+            fillTimeInputs(car.end_time, 'end');
             document.getElementById("paied_time").value = car.paied_time || "";
             document.getElementById("Money").value = car.paied_time ? `${car.paied_time}k VNĐ` : "0 VNĐ";
 
-            // --- TẠO DANH SÁCH CHỌN NHIỀU XE ---
+            // Image reset
+            document.getElementById('imageInput').value = "";
+            document.getElementById('deleteImageFlag').value = 'false';
+            if (car.image) {
+                document.getElementById('imgPreview').src = car.image;
+                document.getElementById('imgPreview').style.display = 'block';
+                document.getElementById('uploadPlaceholder').style.display = 'none';
+                document.getElementById('btnDeleteImg').style.display = 'block';
+            } else {
+                document.getElementById('imgPreview').src = "";
+                document.getElementById('imgPreview').style.display = 'none';
+                document.getElementById('uploadPlaceholder').style.display = 'block';
+                document.getElementById('btnDeleteImg').style.display = 'none';
+            }
+
+            // Logic hiển thị nút Đổi Xe
+            toggleSwapButton();
+            document.getElementById("swapSection").style.display = "none"; // Mặc định ẩn list chọn
+
+            // Populate Swap Select List & Multi Select List
+            const swapSelect = document.getElementById("targetCarSelect");
             const multiContainer = document.getElementById("multiSelectContainer");
+            
+            swapSelect.innerHTML = '<option value="">-- Chọn xe trống --</option>';
             multiContainer.innerHTML = ""; 
 
             globalCarsData.forEach(otherCar => {
-                // 1. Không hiện xe đang mở
                 if (otherCar.id === car.id) return;
                 
-                // 2. NEW: Chỉ hiện các xe TRỐNG (Free)
-                if (otherCar.status !== "Free") return;
+                // Logic hiển thị trong list Đổi xe: Chỉ xe TRỐNG và VISIBLE
+                if (otherCar.status === "Free" && isCarVisible(otherCar.id)) {
+                    const option = document.createElement("option");
+                    option.value = otherCar.id;
+                    option.text = `${otherCar.type} - ${otherCar.name} - ${otherCar.color ? '('+otherCar.color+')' : ''}`;
+                    swapSelect.appendChild(option);
+                }
 
-                const itemName = formatCarName(otherCar);
-                const itemIcon = getIconForCar(otherCar.type); 
-                
-                const div = document.createElement('div');
-                div.className = "car-checkbox-item";
-                
-                const checkbox = document.createElement('input');
-                checkbox.type = "checkbox";
-                checkbox.className = "form-check-input car-select-checkbox";
-                checkbox.value = otherCar.id;
-                checkbox.id = `chk_${otherCar.id}`;
-
-                const label = document.createElement('label');
-                label.className = "form-check-label w-100 stretched-link d-flex align-items-center"; 
-                label.htmlFor = `chk_${otherCar.id}`;
-                label.innerHTML = `<i class="fas ${itemIcon} small-icon"></i> ${itemName}`;
-
-                div.appendChild(checkbox);
-                div.appendChild(label);
-                multiContainer.appendChild(div);
+                // Logic hiển thị trong list Multi Select: Chỉ xe TRỐNG và VISIBLE
+                if (otherCar.status === "Free" && isCarVisible(otherCar.id)) {
+                    const itemName = `${otherCar.type} - ${otherCar.name} ${otherCar.color ? '('+otherCar.color+')' : ''}`;
+                    const itemIcon = getIconForCar(otherCar.type); 
+                    multiContainer.innerHTML += `<div class="car-checkbox-item"><input type="checkbox" class="form-check-input car-select-checkbox" value="${otherCar.id}" id="chk_${otherCar.id}"><label class="form-check-label w-100 stretched-link d-flex align-items-center" for="chk_${otherCar.id}"><i class="fas ${itemIcon} small-icon"></i> ${itemName}</label></div>`;
+                }
             });
-            // -----------------------------------
 
             carOffcanvas.show();
         }
 
         document.getElementById("carForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            
             const btn = this.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...'; 
-            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...'; btn.disabled = true;
 
-            const startTimeVal = document.getElementById("start_time").value;
-            const endTimeVal = document.getElementById("end_time").value;
+            const startTimeStr = getTimeFromInputs('start');
+            const endTimeStr = getTimeFromInputs('end');
             const currentCarId = document.getElementById("carId").value;
 
-            let selectedIds = [];
-            if (currentCarId && currentCarId.trim() !== "") {
-                selectedIds.push(currentCarId);
-            }
-            
-            const checkboxes = document.querySelectorAll('.car-select-checkbox:checked');
-            checkboxes.forEach(cb => {
-                if (cb.value && cb.value.trim() !== "") {
-                    selectedIds.push(cb.value);
-                }
-            });
+            const formData = new FormData();
+            if (currentCarId) formData.append('carIds[]', currentCarId);
+            document.querySelectorAll('.car-select-checkbox:checked').forEach(cb => { if (cb.value) formData.append('carIds[]', cb.value); });
 
-            if (selectedIds.length === 0) {
-                alert("Lỗi: Không xác định được xe cần cập nhật!");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                return;
-            }
+            if (!formData.has('carIds[]')) { alert("Lỗi: Không có xe!"); btn.innerHTML = originalText; btn.disabled = false; return; }
 
-            const payload = {
-                carIds: selectedIds, 
-                status: document.getElementById("status").value,
-                start_time: combineTodayWithTime(startTimeVal), 
-                end_time: combineTodayWithTime(endTimeVal),     
-                paied_time: document.getElementById("paied_time").value
-            };
+            formData.append('status', document.getElementById("status").value);
+            formData.append('start_time', combineTodayWithTime(startTimeStr));
+            formData.append('end_time', combineTodayWithTime(endTimeStr));
+            formData.append('paied_time', document.getElementById("paied_time").value);
+            formData.append('delete_image', document.getElementById("deleteImageFlag").value);
+            const fileInput = document.getElementById("imageInput");
+            if (fileInput.files.length > 0) formData.append('imageFile', fileInput.files[0]);
 
-            fetch("/update_car/", { 
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCookie("csrftoken")
-                },
-                body: JSON.stringify(payload)
-            })
+            fetch("/update_car/", { method: "POST", headers: { "X-CSRFToken": getCookie("csrftoken") }, body: formData })
             .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    carOffcanvas.hide(); 
-                    loadCars(); 
-                } else {
-                    alert("Lỗi: " + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("Mất kết nối server!");
-            })
-            .finally(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
+            .then(data => { if (data.success) { carOffcanvas.hide(); loadCars(); } else { alert("Lỗi: " + data.error); } })
+            .catch(error => { console.error('Error:', error); alert("Mất kết nối server!"); })
+            .finally(() => { btn.innerHTML = originalText; btn.disabled = false; });
         });
     </script>
 </body>
