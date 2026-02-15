@@ -4,7 +4,7 @@ import json
 from django.forms import ValidationError
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from .models import Car, Order
+from .models import *
 from django.utils import timezone
 
 
@@ -16,6 +16,8 @@ def car_data(request):
     cars = Car.objects.all()
     car_data = []
     for car in cars:
+        setting = SystemSetting.load()
+
         latest_order = car.orders.order_by('-id').first()
         start_time = timezone.localtime(latest_order.start_time) if latest_order else None
         end_time = timezone.localtime(latest_order.end_time) if (latest_order and latest_order.end_time) else None
@@ -38,8 +40,12 @@ def car_data(request):
             "end_time": end_time,
             "paied_time": paied_time,
             "image": image_url, # Trả về link ảnh
+            'is_using': car.is_using,
         })
-    return JsonResponse({"cars": car_data})
+    return JsonResponse({
+        "cars": car_data,
+        'global_price': setting.global_price,
+        })
 
 
 def parse_datetime_local(dt_str):
@@ -239,6 +245,27 @@ def swap_car(request):
             return JsonResponse({"success": False, "error": str(e)})
 
     return JsonResponse({"success": False, "error": "Invalid method"})
-
+@csrf_exempt
+def update_car_visibility(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            visible_ids = data.get('visible_ids', [])
+            
+            # Cập nhật tất cả xe thành False
+            Car.objects.all().update(is_using=False)
+            # Sau đó cập nhật những xe được chọn thành True
+            if visible_ids:
+                Car.objects.filter(id__in=visible_ids).update(is_using=True)
+            global_price = data.get('global_price')
+            if global_price is not None:
+                setting = SystemSetting.load()
+                setting.global_price = int(global_price) if global_price else 0
+                setting.save()
+                
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+    return JsonResponse({"success": False, "error": "Invalid method"})
 def car_dashboard(request):
     return render(request, "cars/dashboard.html")

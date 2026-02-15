@@ -1,2 +1,5 @@
 # Bỏ qua thư mục môi trường ảo
 evn/
+db.sqlite3
+# Bỏ qua các tệp tạm thời của hệ điều hành
+.DS_Store

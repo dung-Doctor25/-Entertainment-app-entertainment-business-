@@ -11,15 +11,38 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding-bottom: 80px; }
+        body { background-color: #31363d; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding-bottom: 80px; }
         
         .app-header { background: white; padding: 15px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
         .app-title { font-size: 1.25rem; font-weight: 700; color: #2c3e50; margin: 0; }
 
-        .group-section { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .type-header { font-size: 1.1rem; font-weight: 700; color: #2c3e50; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; display: flex; align-items: center; text-transform: uppercase; }
+        .group-section { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        
+        .type-header { 
+            font-size: 1.1rem; 
+            font-weight: 800; 
+            color: #2c3e50; 
+            padding: 10px 15px; 
+            margin-bottom: 20px; 
+            border-bottom: 1px solid #e9ecef; 
+            border-left: 5px solid #0d6efd; 
+            background: linear-gradient(to right, #E9F2FF, #DCEBFF); 
+            border-radius: 4px;
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            text-transform: uppercase; 
+        }
+        .type-count-badge {
+            font-size: 0.8rem;
+            background-color: #0d6efd;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
 
-        .car-card { background: #f8f9fa; border-radius: 12px; padding: 10px; border: 2px solid transparent; transition: transform 0.2s; cursor: pointer; position: relative; overflow: hidden; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .car-card { background: #f8f9fa; border-radius: 12px; padding: 12px; border: 3px solid transparent; transition: transform 0.2s; cursor: pointer; position: relative; overflow: hidden; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .car-card:active { transform: scale(0.96); }
         
         .car-thumb-box { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; margin-bottom: 8px; border: 2px solid #dee2e6; background: #fff; display: flex; align-items: center; justify-content: center; }
@@ -37,16 +60,23 @@
         .card-free { border-color: #dee2e6; background: #fff; }
         .card-free .car-status-badge { background: #e9ecef; color: #6c757d; }
 
-        .lightbox-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
-        .lightbox-overlay.active { display: flex; opacity: 1; }
-        .lightbox-img { max-width: 90%; max-height: 90%; border-radius: 8px; }
-        .lightbox-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer; }
-
-        .upload-area { border: 2px dashed #ced4da; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; position: relative; background: #f8f9fa; }
+        .upload-area { border: 2px dashed #ced4da; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; position: relative; background: #f8f9fa; transition: all 0.3s; }
         .upload-preview { width: 100%; height: 150px; object-fit: contain; display: none; margin-bottom: 10px; border-radius: 8px; }
         .btn-delete-img { position: absolute; top: 5px; right: 5px; font-size: 0.8rem; padding: 2px 8px; display: none; }
+        
+        /* Class khóa upload ảnh */
+        .upload-disabled {
+            opacity: 0.6;
+            pointer-events: none;
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+            filter: grayscale(100%);
+        }
 
-        .offcanvas-bottom { height: auto !important; max-height: 90vh; border-top-left-radius: 20px; border-top-right-radius: 20px; }
+        #carOffcanvas .offcanvas-body {
+            background-color: #5d6672;
+        }
+        .offcanvas-bottom { height: auto !important; max-height: 95vh; border-top-left-radius: 20px; border-top-right-radius: 20px; }
         .time-input-group { display: flex; align-items: center; gap: 5px; }
         .time-input-box { flex: 1; text-align: center; font-size: 1.2rem; padding: 10px; font-weight: bold; }
         
@@ -59,9 +89,45 @@
         .settings-list { max-height: 60vh; overflow-y: auto; }
         .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
         .form-switch .form-check-input { width: 2.5em; height: 1.25em; }
-
-        /* Style cho phần Đổi xe */
         .swap-section { background: #e3f2fd; border-radius: 8px; padding: 10px; margin-bottom: 15px; border: 1px dashed #0d6efd; display: none; }
+
+        .form-section-box {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 20px 15px 15px 15px; 
+            margin-bottom: 25px;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        
+        .form-section-title {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #6c757d;
+            color: white;
+            padding: 4px 15px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            z-index: 5;
+        }
+
+        .box-img .form-section-title { background-color: #6f42c1; } 
+        .box-status .form-section-title { background-color: #fd7e14; } 
+        .box-time .form-section-title { background-color: #0dcaf0; color: #000; } 
+        .payment-block .form-section-title { background-color: #198754; } 
+        .box-batch .form-section-title { background-color: #adb5bd; color: #000; } 
+
+        .payment-block {
+            background-color: #f0fff4;
+            border-color: #bbf7d0;
+        }
     </style>
 </head>
 <body>
@@ -79,24 +145,31 @@
         <div id="car-container"></div>
     </div>
 
-    <div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
-        <i class="fas fa-times lightbox-close"></i>
-        <img id="lightbox-img" class="lightbox-img" src="" alt="Full Image">
-    </div>
-
     <div class="modal fade" id="settingsModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold"><i class="fas fa-eye me-2"></i>Chọn Xe Hiển Thị</h5>
+                    <h5 class="modal-title fw-bold"><i class="fas fa-cog me-2"></i>Cài Đặt Hệ Thống</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <h6 class="fw-bold mb-2 border-bottom pb-2">1. Cấu Hình Giá Thuê</h6>
+                    <div class="row g-2 mb-4">
+                        <div class="col-12">
+                            <div class="input-group input-group-sm shadow-sm">
+                                <input type="number" id="global_price" class="form-control" placeholder="Ví dụ: 1000">
+                                <span class="input-group-text bg-light">VNĐ / Phút</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-2 border-bottom pb-2">2. Chọn Xe Hiển Thị</h6>
+                    <p class="small text-muted mb-3">Tắt các xe bạn không sử dụng để giao diện gọn hơn.</p>
                     <div id="settingsList" class="settings-list"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" onclick="saveSettings()">Lưu Cấu Hình</button>
+                    <button type="button" id="btnSaveSettings" class="btn btn-primary" onclick="saveSettings()">Lưu Cấu Hình</button>
                 </div>
             </div>
         </div>
@@ -105,8 +178,18 @@
     <div class="modal fade" id="guideModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-header"><h5 class="modal-title fw-bold">Hướng Dẫn</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header"><h5 class="modal-title fw-bold">Hướng Dẫn & Cài Đặt</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
+                    
+                    <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-4 border border-primary shadow-sm">
+                        <div>
+                            <strong class="text-primary"><i class="fas fa-edit me-2"></i>Chế độ Sửa/Xóa Ảnh</strong>
+                            <div class="small text-muted" style="font-size: 0.8rem;">Bật để thay đổi hình ảnh cho tất cả xe</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" style="width: 3em; height: 1.5em; cursor: pointer;" id="globalImgEditToggle" onchange="toggleGlobalImageEdit()">
+                        </div>
+                    </div>
                     <h6 class="fw-bold mb-3 border-bottom pb-2">1. Ý nghĩa trạng thái:</h6>
                     <div class="row g-2 mb-4">
                         <div class="col-12"><div class="guide-item"><div class="guide-color-box bg-secondary text-white"><i class="fas fa-car"></i></div><div><div class="fw-bold">Màu Xám</div><small>Xe Trống</small></div></div></div>
@@ -116,7 +199,7 @@
                     <h6 class="fw-bold mb-3 border-bottom pb-2">2. Cách thao tác chuẩn:</h6>
                     <div class="guide-step-box"><span class="guide-step-title">Đặt lại xe trống</span><ul class="mb-0 small ps-3"><li>Chọn <strong>Trống</strong> &rarr; Lưu.</li></ul></div>
                     <div class="guide-step-box"><span class="guide-step-title">Khách trả trước</span><ul class="mb-0 small ps-3"><li>Chọn Giờ vào &rarr; Nhập Phút &rarr; Lưu.</li></ul></div>
-                    <div class="guide-step-box"><span class="guide-step-title">Khách trả sau</span><ul class="mb-0 small ps-3"><li>Vào: Chọn Giờ vào &rarr; Lưu.</li><li>Ra: Chọn Quá giờ &rarr; Lưu.</li></ul></div>
+                    <div class="guide-step-box"><span class="guide-step-title">Khách trả sau</span><ul class="mb-0 small ps-3"><li>Vào: Chọn Giờ vào &rarr; Lưu.</li><li>Ra: Bấm <strong>Tính tiền (Trả sau)</strong> &rarr; Lưu.</li></ul></div>
                 </div>
                 <div class="modal-footer"><button class="btn btn-primary w-100" data-bs-dismiss="modal">Đã hiểu</button></div>
             </div>
@@ -124,18 +207,19 @@
     </div>
 
     <div class="offcanvas offcanvas-bottom" tabindex="-1" id="carOffcanvas">
-        <div class="offcanvas-header">
+        <div class="offcanvas-header bg-light">
             <h5 class="offcanvas-title fw-bold" id="carOffcanvasLabel"></h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
         </div>
-        <div class="offcanvas-body small pb-5">
+        <div class="offcanvas-body small pb-5 pt-4">
             <form id="carForm" enctype="multipart/form-data">
                 <input type="hidden" id="carId">
                 <input type="hidden" id="deleteImageFlag" name="delete_image" value="false">
 
-                <div class="mb-3">
-                    <label class="form-label text-muted fw-bold small">HÌNH ẢNH XE</label>
-                    <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+                <div class="form-section-box box-img">
+                    <span class="form-section-title">Hình Ảnh Xe</span>
+                    
+                    <div id="uploadWrapper" class="upload-area mb-3 upload-disabled" onclick="document.getElementById('imageInput').click()">
                         <input type="file" id="imageInput" name="imageFile" hidden accept="image/*" onchange="previewImage(this)">
                         <img id="imgPreview" class="upload-preview" alt="Preview">
                         <div id="uploadPlaceholder">
@@ -143,74 +227,90 @@
                         </div>
                         <button type="button" id="btnDeleteImg" class="btn btn-danger btn-sm btn-delete-img" onclick="removeImage(event)"><i class="fas fa-trash"></i> Xóa</button>
                     </div>
+                    <div class="text-center small text-muted fst-italic">(Vào <i class="fas fa-question-circle"></i> Hướng dẫn để bật sửa ảnh)</div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label text-muted fw-bold small">TRẠNG THÁI</label>
-                    <select id="status" class="form-select form-select-lg shadow-sm" onchange="toggleSwapButton()">
-                        <option value="Pending">🟢 Đang chơi</option>
-                        <option value="Timeout">🔴 Quá giờ</option>
-                        <option value="Free">⚪ Trống</option>
-                    </select>
-                </div>
+                <div class="form-section-box box-status">
+                    <span class="form-section-title">Trạng Thái & Đổi Xe</span>
+                    <div class="">
+                        <select id="status" class="form-select form-select-lg shadow-sm fw-bold text-primary" onchange="toggleSwapButton()">
+                            <option value="Pending">🟢 Đang chơi</option>
+                            <option value="Timeout" id="opt_timeout" hidden>🔴 Đã tính tiền (Quá giờ)</option>
+                            <option value="Free">⚪ Trống</option>
+                        </select>
+                    </div>
 
-                <div id="swapContainer">
-                    <div class="d-flex justify-content-end mb-3">
-                        <button type="button" class="btn btn-warning btn-sm" onclick="toggleSwapSection()">
-                            <i class="fas fa-exchange-alt me-1"></i> Đổi sang xe khác
-                        </button>
-                    </div>
-                    <div id="swapSection" class="swap-section">
-                        <label class="form-label fw-bold small text-primary">CHỌN XE MUỐN CHUYỂN ĐẾN:</label>
-                        <select id="targetCarSelect" class="form-select mb-2"></select>
-                        <button type="button" class="btn btn-primary w-100" onclick="executeSwap()">Xác nhận Đổi Xe</button>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-6 mb-3">
-                        <label class="form-label text-muted fw-bold small">GIỜ VÀO</label>
-                        <div class="time-input-group">
-                            <input type="number" id="start_h" class="form-control time-input-box" placeholder="H" min="0" max="23">
-                            <span class="time-separator">:</span>
-                            <input type="number" id="start_m" class="form-control time-input-box" placeholder="M" min="0" max="59">
+                    <div id="swapContainer" class="mt-3">
+                        <div class="d-flex justify-content-end mb-2">
+                            <button type="button" class="btn btn-warning btn-sm w-100" onclick="toggleSwapSection()">
+                                <i class="fas fa-exchange-alt me-1"></i> Đổi sang xe khác
+                            </button>
                         </div>
-                        <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="setNow('start')"><i class="fas fa-clock me-1"></i>Hiện tại</button>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label text-muted fw-bold small">GIỜ RA</label>
-                        <div class="time-input-group">
-                            <input type="number" id="end_h" class="form-control time-input-box" placeholder="H" min="0" max="23">
-                            <span class="time-separator">:</span>
-                            <input type="number" id="end_m" class="form-control time-input-box" placeholder="M" min="0" max="59">
+                        <div id="swapSection" class="swap-section">
+                            <label class="form-label fw-bold small text-primary">CHỌN XE MUỐN CHUYỂN ĐẾN:</label>
+                            <select id="targetCarSelect" class="form-select mb-2"></select>
+                            <button type="button" class="btn btn-primary w-100" onclick="executeSwap()">Xác nhận Đổi Xe</button>
                         </div>
-                        <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="setNow('end')"><i class="fas fa-clock me-1"></i>Hiện tại</button>
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label text-muted fw-bold small">PHÚT ĐÃ THANH TOÁN</label>
-                    <div class="input-group shadow-sm">
-                        <input type="number" id="paied_time" class="form-control form-control-lg" placeholder="Nhập phút...">
-                        <span class="input-group-text">Phút</span>
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label text-muted fw-bold small">TẠM TÍNH</label>
-                    <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-success text-white"><i class="fas fa-money-bill-wave"></i></span>
-                        <input type="text" id="Money" class="form-control form-control-lg fw-bold text-success" readonly style="background: #fff;">
+                <div class="form-section-box box-time">
+                    <span class="form-section-title">Quản lý Thời gian</span>
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label text-muted fw-bold small">GIỜ VÀO</label>
+                            <div class="time-input-group">
+                                <input type="number" id="start_h" class="form-control time-input-box" placeholder="H" min="0" max="23">
+                                <span class="time-separator">:</span>
+                                <input type="number" id="start_m" class="form-control time-input-box" placeholder="M" min="0" max="59">
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="setNow('start')"><i class="fas fa-clock me-1"></i>Hiện tại</button>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted fw-bold small">GIỜ RA</label>
+                            <div class="time-input-group">
+                                <input type="number" id="end_h" class="form-control time-input-box" placeholder="H" min="0" max="23">
+                                <span class="time-separator">:</span>
+                                <input type="number" id="end_m" class="form-control time-input-box" placeholder="M" min="0" max="59">
+                            </div>
+                            
+                        </div>
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label text-muted fw-bold small">ÁP DỤNG THÊM CHO:</label>
+                <div class="form-section-box payment-block">
+                    <span class="form-section-title">Thanh Toán & Tính Tiền</span>
+                    <div class="mb-3">
+                        <label class="form-label text-success fw-bold small">PHÚT ĐÃ CHƠI / THANH TOÁN</label>
+                        <div class="input-group shadow-sm">
+                            <input type="number" id="paied_time" class="form-control form-control-lg fw-bold" placeholder="Nhập phút...">
+                            <span class="input-group-text">Phút</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label text-success fw-bold small mb-0">TẠM TÍNH</label>
+                            <button type="button" id="btn_checkout" class="btn btn-sm btn-danger rounded shadow-sm fw-bold" onclick="calculateCheckout()">
+                                <i class="fas fa-calculator me-1"></i> Tính tiền (Trả sau)
+                            </button>
+                        </div>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-success text-white border-success"><i class="fas fa-money-bill-wave"></i></span>
+                            <input type="text" id="Money" class="form-control form-control-lg fw-bold text-success border-success" readonly style="background: #fff;" value="0 VNĐ">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-box box-batch">
+                    <span class="form-section-title">Thao tác hàng loạt</span>
+                    <label class="form-label text-muted fw-bold small">ÁP DỤNG CẤU HÌNH TRÊN CHO:</label>
                     <div id="multiSelectContainer" class="multi-select-container"></div>
                     <div class="form-text small text-end"><i class="fas fa-info-circle"></i> Chỉ hiển thị các xe TRỐNG và đang BẬT</div>
                 </div>
 
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow"><i class="fas fa-save me-2"></i>Lưu Thay Đổi</button>
+                <div class="d-grid pb-3">
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow fw-bold py-3"><i class="fas fa-save me-2"></i>LƯU THAY ĐỔI</button>
                 </div>
             </form>
         </div>
@@ -222,41 +322,142 @@
         let settingsModal;
         let globalCarsData = []; 
         let visibleCarIds = [];
+        let systemPrice = 0;
+        let isGlobalImgEdit = false; 
 
         document.addEventListener("DOMContentLoaded", () => {
             carOffcanvas = new bootstrap.Offcanvas(document.getElementById('carOffcanvas'));
             settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
-            loadSettings(); 
             loadCars(); 
             setInterval(loadCars, 30000);
+
+            document.getElementById("paied_time").addEventListener("input", calculateMoney);
         });
 
-        // --- CẤU HÌNH ---
-        function loadSettings() {
-            const saved = localStorage.getItem('visibleCarIds');
-            visibleCarIds = saved ? JSON.parse(saved) : null;
+        // --- HÀM XỬ LÝ NÚT BẬT SỬA ẢNH TOÀN CỤC ---
+        function toggleGlobalImageEdit() {
+            isGlobalImgEdit = document.getElementById('globalImgEditToggle').checked;
         }
+
+        function calculateMoney() {
+            const timeInput = document.getElementById("paied_time").value;
+            const minutes = parseInt(timeInput, 10) || 0;
+            const btnCheckout = document.getElementById("btn_checkout");
+            if (timeInput.trim() !== "") {
+                btnCheckout.disabled = true;
+            } else {
+                btnCheckout.disabled = false;
+            }
+
+            if (systemPrice > 0) {
+                const total = minutes * systemPrice;
+                document.getElementById("Money").value = total.toLocaleString('vi-VN') + " VNĐ";
+            } else {
+                document.getElementById("Money").value = "0 VNĐ";
+            }
+        }
+
+        function calculateCheckout() {
+            let startHStr = document.getElementById("start_h").value;
+            let startMStr = document.getElementById("start_m").value;
+            
+            if (startHStr === "" || startMStr === "") {
+                alert("Vui lòng thiết lập Giờ Vào trước khi tính tiền!");
+                return;
+            }
+
+            setNow('end');
+            
+            let endH = parseInt(document.getElementById("end_h").value, 10);
+            let endM = parseInt(document.getElementById("end_m").value, 10);
+            let startH = parseInt(startHStr, 10);
+            let startM = parseInt(startMStr, 10);
+
+            let totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+            if (totalMinutes < 0) totalMinutes += 24 * 60;
+
+            if (totalMinutes >= 720 && startH >= 1 && startH <= 11 && endH >= 12) {
+                let suggestH = startH + 12;
+                let mStr = startM < 10 ? '0' + startM : startM;
+                if (confirm(`Hệ thống đang tính ${totalMinutes} phút.\nBạn có nhập nhầm giờ định dạng 12h không?\nCó phải ý bạn Giờ vào là ${suggestH}:${mStr} (chiều) thay vì ${startH}:${mStr} (sáng)?`)) {
+                    startH += 12;
+                    document.getElementById("start_h").value = startH;
+                    totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+                    if (totalMinutes < 0) totalMinutes += 24 * 60;
+                }
+            }
+
+            document.getElementById("paied_time").value = totalMinutes;
+            calculateMoney();
+
+            document.getElementById("opt_timeout").hidden = false;
+            document.getElementById("status").value = "Timeout";
+            toggleSwapButton();
+        }
+
+        function isCarVisible(id) {
+            const car = globalCarsData.find(c => c.id === id);
+            return car ? car.is_using : true; 
+        }
+
         function openSettingsModal() {
             const container = document.getElementById('settingsList'); container.innerHTML = "";
             if (!globalCarsData.length) { container.innerHTML = "Loading..."; return; }
+            
             globalCarsData.forEach(car => {
-                const isChecked = (visibleCarIds === null) || visibleCarIds.includes(car.id);
-                const fullName = `${car.type} - ${car.name}`;
-                container.innerHTML += `<div class="setting-item"><span class="fw-bold">${fullName}</span><div class="form-check form-switch"><input class="form-check-input setting-switch" type="checkbox" value="${car.id}" ${isChecked ? 'checked' : ''}></div></div>`;
+                const isChecked = car.is_using;
+                const fullName = `${car.type} - ${car.name} ${car.color ? '('+car.color+')' : ''}`;
+                container.innerHTML += `
+                    <div class="setting-item">
+                        <span class="fw-bold">${fullName}</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input setting-switch" type="checkbox" value="${car.id}" ${isChecked ? 'checked' : ''}>
+                        </div>
+                    </div>`;
             });
             settingsModal.show();
         }
-        function saveSettings() {
-            const switches = document.querySelectorAll('.setting-switch');
-            const newVisibleIds = [];
-            switches.forEach(sw => { if (sw.checked) newVisibleIds.push(parseInt(sw.value)); });
-            visibleCarIds = newVisibleIds;
-            localStorage.setItem('visibleCarIds', JSON.stringify(visibleCarIds));
-            settingsModal.hide(); renderDashboard(); 
-        }
-        function isCarVisible(id) { return visibleCarIds === null || visibleCarIds.includes(id); }
 
-        // --- UTILS ---
+        function saveSettings() {
+            const btn = document.getElementById("btnSaveSettings");
+            const oldText = btn.innerHTML;
+            btn.innerHTML = "Đang lưu..."; btn.disabled = true;
+
+            const switches = document.querySelectorAll('.setting-switch');
+            const visibleIds = [];
+            switches.forEach(sw => { if (sw.checked) visibleIds.push(parseInt(sw.value)); });
+
+            const priceVal = document.getElementById("global_price").value;
+
+            fetch("/update_car_visibility/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify({ 
+                    visible_ids: visibleIds,
+                    global_price: priceVal
+                }) 
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    settingsModal.hide(); 
+                    loadCars(); 
+                } else {
+                    alert("Lỗi khi lưu cấu hình: " + data.error);
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi:", err);
+                alert("Lỗi kết nối khi lưu cấu hình!");
+            })
+            .finally(() => {
+                btn.innerHTML = oldText; btn.disabled = false;
+            });
+        }
+
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== "") {
@@ -271,6 +472,7 @@
             }
             return cookieValue;
         }
+
         function formatCarNameShort(car) { return `${car.name} ${car.color ? '('+car.color+')' : ''}`; }
         function getIconForCar(type) {
             if (!type) return "fa-car";
@@ -305,9 +507,6 @@
             return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}T${timeStr}`;
         }
 
-        // --- IMAGE ---
-        function showLightbox(url) { document.getElementById('lightbox-img').src = url; document.getElementById('lightbox').classList.add('active'); }
-        function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); }
         function previewImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -331,9 +530,11 @@
             document.getElementById('deleteImageFlag').value = 'true';
         }
 
-        // --- CORE LOGIC ---
         function loadCars() {
             fetch("/car_data/").then(res => res.json()).then(data => {
+                systemPrice = data.global_price || 0;
+                document.getElementById('global_price').value = systemPrice || "";
+
                 data.cars.sort((a, b) => {
                     const typeA = a.type || "Khác", typeB = b.type || "Khác";
                     if (typeA.localeCompare(typeB) !== 0) return typeA.localeCompare(typeB);
@@ -347,8 +548,9 @@
             const container = document.getElementById("car-container"); container.innerHTML = "";
             const now = new Date();
             const groupedCars = {};
+            
             globalCarsData.forEach(car => {
-                if (!isCarVisible(car.id)) return;
+                if (!isCarVisible(car.id)) return; 
                 const type = car.type || "Khác";
                 if (!groupedCars[type]) groupedCars[type] = [];
                 groupedCars[type].push(car);
@@ -358,7 +560,13 @@
 
             for (const [type, cars] of Object.entries(groupedCars)) {
                 const section = document.createElement("div"); section.className = "group-section";
-                section.innerHTML = `<div class="type-header"><i class="fas ${getIconForCar(type)} me-2 text-primary"></i> ${type}</div>`;
+                const count = cars.length;
+                section.innerHTML = `
+                    <div class="type-header">
+                        <span><i class="fas ${getIconForCar(type)} me-2 text-primary"></i> ${type}</span>
+                        
+                    </div>`;
+
                 const row = document.createElement("div"); row.className = "row g-3";
 
                 cars.forEach(car => {
@@ -367,24 +575,31 @@
                     if (car.end_time && new Date(car.end_time) <= now) car.status = "Timeout";
                     if (car.status === "Timeout") { cardClass = "card-timeout"; statusText = "Quá giờ"; }
 
-                    const thumbHtml = car.image ? `<div class="car-thumb-box" onclick="event.stopPropagation();showLightbox('${car.image}')"><img src="${car.image}" class="car-thumb-img"></div>` : `<div class="car-icon-default mb-2"><i class="fas ${getIconForCar(car.type)}"></i></div>`;
+                    const thumbHtml = car.image ? `<div class="car-thumb-box"><img src="${car.image}" class="car-thumb-img"></div>` : `<div class="car-icon-default mb-2"><i class="fas ${getIconForCar(car.type)}"></i></div>`;
                     
-                    row.innerHTML += `<div class="col-6 col-md-4 col-lg-3"><div class="car-card ${cardClass}" onclick='openEditor(${JSON.stringify(car).replace(/'/g, "&#39;")})'>${thumbHtml}<div class="car-name">${formatCarNameShort(car)}</div><div class="car-end-time">${car.end_time ? "Ra: "+formatTimeDisplay(car.end_time) : ""}</div><div class="car-status-badge">${statusText}</div></div></div>`;
+                    const fullName = formatCarNameShort(car);
+                    
+                    let timeDisplay = "";
+                    if (car.end_time) {
+                        timeDisplay = `Kết thúc: ${formatTimeDisplay(car.end_time)}`;
+                    } else if (car.status === "Pending" && car.start_time) {
+                        timeDisplay = `Vào: ${formatTimeDisplay(car.start_time)}`;
+                    }
+
+                    row.innerHTML += `<div class="col-6 col-md-4 col-lg-3"><div class="car-card ${cardClass}" onclick='openEditor(${JSON.stringify(car).replace(/'/g, "&#39;")})'>${thumbHtml}<div class="car-name">${fullName}</div><div class="car-end-time">${timeDisplay}</div><div class="car-status-badge">${statusText}</div></div></div>`;
                 });
                 section.appendChild(row); container.appendChild(section);
             }
         }
 
-        // --- SWAP LOGIC ---
         function toggleSwapButton() {
             const status = document.getElementById("status").value;
             const container = document.getElementById("swapContainer");
-            // Chỉ hiện nút đổi xe khi đang Chơi hoặc Timeout
             if (status === "Pending" || status === "Timeout") {
                 container.style.display = "block";
             } else {
                 container.style.display = "none";
-                document.getElementById("swapSection").style.display = "none"; // Ẩn luôn phần chọn nếu chuyển sang Free
+                document.getElementById("swapSection").style.display = "none"; 
             }
         }
 
@@ -404,7 +619,6 @@
             formData.append("source_id", sourceId);
             formData.append("target_id", targetId);
 
-            // Nút đang xử lý
             const btn = document.querySelector("#swapSection button");
             const oldText = btn.innerHTML;
             btn.innerHTML = "Đang xử lý..."; btn.disabled = true;
@@ -430,14 +644,20 @@
             document.getElementById('carOffcanvasLabel').innerHTML = `<i class="fas ${icon} me-2"></i>${fullNameShort}`;
             
             document.getElementById("carId").value = car.id;
+            
+            if (car.status === "Timeout") {
+                document.getElementById("opt_timeout").hidden = false;
+            } else {
+                document.getElementById("opt_timeout").hidden = true;
+            }
             document.getElementById("status").value = car.status;
             
             fillTimeInputs(car.start_time, 'start');
             fillTimeInputs(car.end_time, 'end');
+            
             document.getElementById("paied_time").value = car.paied_time || "";
-            document.getElementById("Money").value = car.paied_time ? `${car.paied_time}k VNĐ` : "0 VNĐ";
+            document.getElementById("paied_time").dispatchEvent(new Event('input'));
 
-            // Image reset
             document.getElementById('imageInput').value = "";
             document.getElementById('deleteImageFlag').value = 'false';
             if (car.image) {
@@ -452,11 +672,17 @@
                 document.getElementById('btnDeleteImg').style.display = 'none';
             }
 
-            // Logic hiển thị nút Đổi Xe
-            toggleSwapButton();
-            document.getElementById("swapSection").style.display = "none"; // Mặc định ẩn list chọn
+            // --- QUAN TRỌNG: KIỂM TRA TRẠNG THÁI NÚT TOÀN CỤC ĐỂ KHÓA/MỞ KHÓA ẢNH ---
+            const uploadWrapper = document.getElementById("uploadWrapper");
+            if (isGlobalImgEdit) {
+                uploadWrapper.classList.remove("upload-disabled");
+            } else {
+                uploadWrapper.classList.add("upload-disabled");
+            }
 
-            // Populate Swap Select List & Multi Select List
+            toggleSwapButton();
+            document.getElementById("swapSection").style.display = "none"; 
+
             const swapSelect = document.getElementById("targetCarSelect");
             const multiContainer = document.getElementById("multiSelectContainer");
             
@@ -466,15 +692,13 @@
             globalCarsData.forEach(otherCar => {
                 if (otherCar.id === car.id) return;
                 
-                // Logic hiển thị trong list Đổi xe: Chỉ xe TRỐNG và VISIBLE
                 if (otherCar.status === "Free" && isCarVisible(otherCar.id)) {
                     const option = document.createElement("option");
                     option.value = otherCar.id;
-                    option.text = `${otherCar.type} - ${otherCar.name} - ${otherCar.color ? '('+otherCar.color+')' : ''}`;
+                    option.text = `${otherCar.type} - ${otherCar.name} ${otherCar.color ? '('+otherCar.color+')' : ''}`;
                     swapSelect.appendChild(option);
                 }
 
-                // Logic hiển thị trong list Multi Select: Chỉ xe TRỐNG và VISIBLE
                 if (otherCar.status === "Free" && isCarVisible(otherCar.id)) {
                     const itemName = `${otherCar.type} - ${otherCar.name} ${otherCar.color ? '('+otherCar.color+')' : ''}`;
                     const itemIcon = getIconForCar(otherCar.type); 
@@ -489,7 +713,7 @@
             e.preventDefault();
             const btn = this.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...'; btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ĐANG LƯU...'; btn.disabled = true;
 
             const startTimeStr = getTimeFromInputs('start');
             const endTimeStr = getTimeFromInputs('end');

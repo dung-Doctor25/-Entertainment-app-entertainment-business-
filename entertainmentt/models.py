@@ -10,7 +10,7 @@ class Car(models.Model):
     type = models.CharField(max_length=100)
     color = models.CharField(max_length=50)
     image = models.ImageField(upload_to='car_images/', null=True, blank=True)
-
+    is_using = models.BooleanField(default=True)
     def __str__(self):
         return f" {self.name} {self.type} ({self.color})"
 
@@ -25,7 +25,7 @@ class Order(models.Model):
     end_time = models.DateTimeField(null=True, blank=True)
 
     paied_time = models.IntegerField(default=0)
-
+    
     class Status(models.TextChoices):
         PENDING = "Pending", "Pending"
         TIMEOUT = "Timeout", "Timeout"
@@ -57,4 +57,18 @@ class Order(models.Model):
         else:
             self.end_time = None
         super().save(*args, **kwargs)
+class SystemSetting(models.Model):
+    # Lưu giá tiền cho mỗi 1 phút (ví dụ: 1000)
+    global_price = models.IntegerField(default=1000)
 
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super(SystemSetting, self).save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return f"Cấu hình giá: {self.global_price} VNĐ/Phút"

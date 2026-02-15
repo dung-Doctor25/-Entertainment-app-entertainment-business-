@@ -11,4 +11,5 @@ urlpatterns = [
     path('car_data/', views.car_data, name='car_data'),
     path('update_car/', views.car_data_update, name='car_data_update'),
     path('swap_car/', views.swap_car, name='swap_car'),
+    path('update_car_visibility/', views.update_car_visibility, name='update_car_visibility'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
