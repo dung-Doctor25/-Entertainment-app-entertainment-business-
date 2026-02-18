@@ -3,3 +3,4 @@ evn/
 db.sqlite3
 # Bỏ qua các tệp tạm thời của hệ điều hành
 .DS_Store
+media/

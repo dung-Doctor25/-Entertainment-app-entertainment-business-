@@ -11,12 +11,41 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
+        /* --- Scroll mượt --- */
+        html { scroll-behavior: smooth; }
+
         body { background-color: #31363d; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding-bottom: 80px; }
         
-        .app-header { background: white; padding: 15px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
+        /* CẬP NHẬT: Z-INDEX CAO HƠN ĐỂ KHÔNG BỊ XE ĐÈ LÊN */
+        .app-header { 
+            background: white; 
+            padding: 15px 20px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            position: sticky; 
+            top: 0; 
+            z-index: 3000; /* Header ở mức 3000 */
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
         .app-title { font-size: 1.25rem; font-weight: 700; color: #2c3e50; margin: 0; }
 
-        .group-section { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        /* CẬP NHẬT: Z-INDEX CAO HƠN XE (1010) NHƯNG THẤP HƠN HEADER (3000) */
+        .quick-nav {
+            position: sticky; top: 72px; z-index: 2900;
+            display: flex; gap: 10px; overflow-x: auto; white-space: nowrap;
+            padding: 10px 15px; background-color: #31363d; border-bottom: 1px solid rgba(255,255,255,0.1);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .group-section { 
+            background: #fff; 
+            border-radius: 12px; 
+            padding: 15px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            scroll-margin-top: 130px; 
+        }
         
         .type-header { 
             font-size: 1.1rem; 
@@ -33,18 +62,29 @@
             justify-content: space-between; 
             text-transform: uppercase; 
         }
-        .type-count-badge {
-            font-size: 0.8rem;
-            background-color: #0d6efd;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
 
         .car-card { background: #f8f9fa; border-radius: 12px; padding: 12px; border: 3px solid transparent; transition: transform 0.2s; cursor: pointer; position: relative; overflow: hidden; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .car-card:active { transform: scale(0.96); }
         
+        /* Button Swap trên Card */
+        .car-swap-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            color: #fd7e14;
+            border: 1px solid #dee2e6;
+            z-index: 10;
+        }
+        .car-swap-btn:active { background: #fd7e14; color: white; }
+
         .car-thumb-box { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; margin-bottom: 8px; border: 2px solid #dee2e6; background: #fff; display: flex; align-items: center; justify-content: center; }
         .car-thumb-img { width: 100%; height: 100%; object-fit: cover; }
         .car-icon-default { font-size: 1.8rem; color: #adb5bd; }
@@ -60,60 +100,119 @@
         .card-free { border-color: #dee2e6; background: #fff; }
         .card-free .car-status-badge { background: #e9ecef; color: #6c757d; }
 
-        .upload-area { border: 2px dashed #ced4da; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; position: relative; background: #f8f9fa; transition: all 0.3s; }
-        .upload-preview { width: 100%; height: 150px; object-fit: contain; display: none; margin-bottom: 10px; border-radius: 8px; }
-        .btn-delete-img { position: absolute; top: 5px; right: 5px; font-size: 0.8rem; padding: 2px 8px; display: none; }
+        .upload-area { border: 2px dashed #ced4da; border-radius: 8px; padding: 5px; text-align: center; cursor: pointer; position: relative; background: #f8f9fa; transition: all 0.3s; }
+        .upload-preview { width: 100%; height: 80px; object-fit: contain; display: none; margin-bottom: 5px; border-radius: 8px; }
+        .btn-delete-img { position: absolute; top: 2px; right: 2px; font-size: 0.7rem; padding: 2px 6px; display: none; }
         
-        /* Class khóa upload ảnh */
-        .upload-disabled {
-            opacity: 0.6;
-            pointer-events: none;
-            background-color: #e9ecef;
-            border-color: #adb5bd;
-            filter: grayscale(100%);
+        .upload-disabled { opacity: 0.6; pointer-events: none; background-color: #e9ecef; border-color: #adb5bd; filter: grayscale(100%); }
+
+        /* --- TÙY CHỈNH OFFCANVAS NHỎ GỌN --- */
+        #carOffcanvas { height: 85vh !important; max-height: 85vh; border-top-left-radius: 15px; border-top-right-radius: 15px; display: flex; flex-direction: column; z-index: 4000 !important;}
+        
+        /* Backdrop cho Offcanvas */
+        .offcanvas-backdrop {
+            z-index: 3900 !important;
+        }
+        
+        /* ===== SỬA LỖI MODAL BỊ CHE =====
+           Vì Header có z-index: 3000 và Offcanvas z-index: 4000,
+           ta phải đẩy Modal và Backdrop của nó lên mức 5000+ để đè lên mọi thứ.
+        */
+        .modal-backdrop {
+            z-index: 5040 !important; /* Cao hơn Offcanvas */
+        }
+        .modal {
+            z-index: 5050 !important; /* Cao nhất hệ thống */
         }
 
-        #carOffcanvas .offcanvas-body {
-            background-color: #5d6672;
-        }
-        .offcanvas-bottom { height: auto !important; max-height: 95vh; border-top-left-radius: 20px; border-top-right-radius: 20px; }
-        .time-input-group { display: flex; align-items: center; gap: 5px; }
-        .time-input-box { flex: 1; text-align: center; font-size: 1.2rem; padding: 10px; font-weight: bold; }
+        #carOffcanvas .offcanvas-header { padding: 10px 15px; background: #f1f3f5; border-bottom: 1px solid #dee2e6; flex-shrink: 0; }
+        #carOffcanvas .offcanvas-title { font-size: 1rem; }
         
-        .multi-select-container { max-height: 150px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa; padding: 5px; }
-        .car-checkbox-item { display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #eee; position: relative; }
+        #carOffcanvas .offcanvas-body { 
+            background-color: #f8f9fa; 
+            padding: 0; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            flex: 1; 
+        }
+
+        /* CẬP NHẬT: Layout Flex với GAP để tách rời các khối */
+        .car-form-scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Tạo khoảng cách cứng giữa các khối */
+        }
+        
+        .car-form-fixed-footer {
+            background: white;
+            padding: 10px 15px;
+            border-top: 1px solid #dee2e6;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .time-input-group { display: flex; align-items: center; gap: 3px; }
+        .time-input-box { flex: 1; text-align: center; font-size: 1rem; padding: 4px; font-weight: bold; height: 35px; }
+        
+        .multi-select-container { 
+            max-height: none; 
+            flex: 1; 
+            overflow-y: auto; 
+            border: 1px solid #dee2e6; 
+            border-radius: 6px; 
+            background: #f8f9fa; 
+            padding: 5px; 
+            font-size: 0.85rem; 
+        }
+
+        .car-checkbox-item { display: flex; align-items: center; padding: 4px; border-bottom: 1px solid #eee; position: relative; }
         .car-checkbox-item:last-child { border-bottom: none; }
-        .form-check-input { width: 1.3em; height: 1.3em; margin-right: 10px; }
-        .small-icon { width: 25px; text-align: center; margin-right: 5px; color: #6c757d; }
+        .form-check-input { width: 1.1em; height: 1.1em; margin-right: 8px; }
+        .small-icon { width: 20px; text-align: center; margin-right: 5px; color: #6c757d; }
 
         .settings-list { max-height: 60vh; overflow-y: auto; }
         .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
         .form-switch .form-check-input { width: 2.5em; height: 1.25em; }
-        .swap-section { background: #e3f2fd; border-radius: 8px; padding: 10px; margin-bottom: 15px; border: 1px dashed #0d6efd; display: none; }
 
+        /* --- Form Section Box Compact --- */
         .form-section-box {
             background: #fff;
             border: 1px solid #e0e0e0;
-            border-radius: 16px;
-            padding: 20px 15px 15px 15px; 
-            margin-bottom: 25px;
+            border-radius: 10px;
+            padding: 15px 10px 10px 10px; 
+            margin-bottom: 0; /* Bỏ margin bottom vì đã dùng gap */
             position: relative;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            flex-shrink: 0; /* Đảm bảo không bị co lại */
+        }
+
+        .form-section-box.box-batch {
+            flex: 1;            
+            display: flex;      
+            flex-direction: column;
+            min-height: 200px;  
+            margin-top: 5px; /* Thêm khoảng cách phụ */
+            border-top: 4px solid #e9ecef; /* Đường phân cách rõ ràng */
         }
         
         .form-section-title {
             position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
+            top: -9px;
+            left: 15px;
+            transform: none; 
             background: #6c757d;
             color: white;
-            padding: 4px 15px;
-            font-size: 0.75rem;
+            padding: 2px 10px;
+            font-size: 0.65rem;
             font-weight: 700;
             text-transform: uppercase;
-            border-radius: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             white-space: nowrap;
             z-index: 5;
         }
@@ -124,10 +223,91 @@
         .payment-block .form-section-title { background-color: #198754; } 
         .box-batch .form-section-title { background-color: #adb5bd; color: #000; } 
 
-        .payment-block {
-            background-color: #f0fff4;
-            border-color: #bbf7d0;
+        .payment-block { background-color: #f0fff4; border-color: #bbf7d0; }
+
+        .quick-nav::-webkit-scrollbar { display: none; }
+        .quick-nav { -ms-overflow-style: none; scrollbar-width: none; }
+        .quick-nav-btn {
+            background: rgba(255, 255, 255, 0.1); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.2);
+            display: inline-flex; align-items: center; padding: 6px 16px; border-radius: 20px;
+            text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; flex-shrink: 0;
         }
+        .quick-nav-btn i { font-size: 1rem; margin-right: 6px; color: #0dcaf0; }
+        .quick-nav-btn:hover, .quick-nav-btn:active { background: #0d6efd; border-color: #0d6efd; color: white; transform: translateY(-2px); }
+        .quick-nav-btn:active i { color: white; }
+
+        /* --- Compact Radio Button --- */
+        .status-radio-group .btn-check:checked + .btn { border-width: 2px; font-weight: bold; box-shadow: inset 0 3px 5px rgba(0,0,0,0.125); }
+        .status-radio-group .btn { padding: 8px 5px; font-size: 0.9rem; } 
+        
+        .form-label { margin-bottom: 2px; font-size: 0.75rem !important; }
+        .input-group-text { padding: 0.25rem 0.5rem; font-size: 0.9rem; }
+
+        /* --- CSS CHO CHẾ ĐỘ ĐỔI XE (SWAP MODE - TĨNH, KHÔNG HIỆU ỨNG) --- */
+        body.swap-active .car-card {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: grayscale(1);
+            transition: all 0.2s ease;
+        }
+        
+        /* Xe Nguồn (Source) */
+        body.swap-active .car-card.swap-source {
+            opacity: 1;
+            filter: grayscale(0);
+            border-color: #ffc107;
+            background-color: #fff3cd; /* Vàng nhạt */
+            box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.3);
+            z-index: 1010;
+        }
+        body.swap-active .car-card.swap-source .car-swap-btn {
+            background-color: #ffc107;
+            color: white;
+            border-color: #ffc107;
+        }
+
+        /* Xe Đích Hợp lệ (Target Free) */
+        body.swap-active .car-card.swap-target-valid {
+            opacity: 1;
+            filter: grayscale(0);
+            pointer-events: auto;
+            border-color: #198754;
+            background-color: #d1e7dd; /* Xanh lá nhạt - Tĩnh */
+            cursor: pointer;
+            z-index: 1010;
+            box-shadow: 0 0 0 2px rgba(25, 135, 84, 0.2);
+        }
+        body.swap-active .car-card.swap-target-valid:hover {
+            background-color: #badbcc;
+            border-width: 2px;
+        }
+        body.swap-active .car-card.swap-target-valid::after {
+            content: "CHỌN XE NÀY";
+            position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #198754;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* Thanh điều khiển Swap */
+        .swap-control-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #31363d;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            z-index: 2000;
+            display: none; 
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+        }
+        .swap-control-bar.active { display: block; }
+        
     </style>
 </head>
 <body>
@@ -141,8 +321,19 @@
         </div>
     </div>
 
+    <div id="quickNav" class="quick-nav"></div>
+
     <div class="container mt-3">
         <div id="car-container"></div>
+    </div>
+
+    <div id="swapControlBar" class="swap-control-bar">
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="text-white fw-bold small"><i class="fas fa-exchange-alt me-2 text-warning"></i>Chọn xe trống để chuyển...</span>
+            <button id="btnCancelSwap" class="btn btn-danger btn-sm rounded-pill fw-bold px-4" onclick="cancelSwapMode()">
+                <i class="fas fa-times me-1"></i> HỦY
+            </button>
+        </div>
     </div>
 
     <div class="modal fade" id="settingsModal" tabindex="-1">
@@ -164,7 +355,6 @@
                     </div>
 
                     <h6 class="fw-bold mb-2 border-bottom pb-2">2. Chọn Xe Hiển Thị</h6>
-                    <p class="small text-muted mb-3">Tắt các xe bạn không sử dụng để giao diện gọn hơn.</p>
                     <div id="settingsList" class="settings-list"></div>
                 </div>
                 <div class="modal-footer">
@@ -180,11 +370,10 @@
             <div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title fw-bold">Hướng Dẫn & Cài Đặt</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
-                    
                     <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-4 border border-primary shadow-sm">
                         <div>
                             <strong class="text-primary"><i class="fas fa-edit me-2"></i>Chế độ Sửa/Xóa Ảnh</strong>
-                            <div class="small text-muted" style="font-size: 0.8rem;">Bật để thay đổi hình ảnh cho tất cả xe</div>
+                            <div class="small text-muted" style="font-size: 0.8rem;">Bật để hiện khung upload ảnh trong Editor</div>
                         </div>
                         <div class="form-check form-switch mb-0">
                             <input class="form-check-input" type="checkbox" style="width: 3em; height: 1.5em; cursor: pointer;" id="globalImgEditToggle" onchange="toggleGlobalImageEdit()">
@@ -196,10 +385,6 @@
                         <div class="col-12"><div class="guide-item"><div class="guide-color-box bg-success text-white"><i class="fas fa-car"></i></div><div><div class="fw-bold">Màu Xanh</div><small>Đang Chơi</small></div></div></div>
                         <div class="col-12"><div class="guide-item"><div class="guide-color-box bg-danger text-white"><i class="fas fa-clock"></i></div><div><div class="fw-bold">Màu Đỏ</div><small>Quá Giờ</small></div></div></div>
                     </div>
-                    <h6 class="fw-bold mb-3 border-bottom pb-2">2. Cách thao tác chuẩn:</h6>
-                    <div class="guide-step-box"><span class="guide-step-title">Đặt lại xe trống</span><ul class="mb-0 small ps-3"><li>Chọn <strong>Trống</strong> &rarr; Lưu.</li></ul></div>
-                    <div class="guide-step-box"><span class="guide-step-title">Khách trả trước</span><ul class="mb-0 small ps-3"><li>Chọn Giờ vào &rarr; Nhập Phút &rarr; Lưu.</li></ul></div>
-                    <div class="guide-step-box"><span class="guide-step-title">Khách trả sau</span><ul class="mb-0 small ps-3"><li>Vào: Chọn Giờ vào &rarr; Lưu.</li><li>Ra: Bấm <strong>Tính tiền (Trả sau)</strong> &rarr; Lưu.</li></ul></div>
                 </div>
                 <div class="modal-footer"><button class="btn btn-primary w-100" data-bs-dismiss="modal">Đã hiểu</button></div>
             </div>
@@ -211,112 +396,101 @@
             <h5 class="offcanvas-title fw-bold" id="carOffcanvasLabel"></h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
         </div>
-        <div class="offcanvas-body small pb-5 pt-4">
-            <form id="carForm" enctype="multipart/form-data">
+        
+        <form id="carForm" enctype="multipart/form-data" class="offcanvas-body">
+            <div class="car-form-scrollable-content">
                 <input type="hidden" id="carId">
                 <input type="hidden" id="deleteImageFlag" name="delete_image" value="false">
-
-                <div class="form-section-box box-img">
-                    <span class="form-section-title">Hình Ảnh Xe</span>
-                    
-                    <div id="uploadWrapper" class="upload-area mb-3 upload-disabled" onclick="document.getElementById('imageInput').click()">
+                
+                <div class="form-section-box box-img" id="boxImageSection" style="display: none;">
+                    <span class="form-section-title">Hình Ảnh</span>
+                    <div id="uploadWrapper" class="upload-area upload-disabled" onclick="document.getElementById('imageInput').click()">
                         <input type="file" id="imageInput" name="imageFile" hidden accept="image/*" onchange="previewImage(this)">
                         <img id="imgPreview" class="upload-preview" alt="Preview">
                         <div id="uploadPlaceholder">
-                            <i class="fas fa-camera fa-2x text-muted mb-2"></i><div class="small text-muted">Chạm để tải ảnh lên</div>
+                            <i class="fas fa-camera text-muted mb-1"></i><div class="small text-muted" style="font-size: 0.7rem">Tải ảnh</div>
                         </div>
-                        <button type="button" id="btnDeleteImg" class="btn btn-danger btn-sm btn-delete-img" onclick="removeImage(event)"><i class="fas fa-trash"></i> Xóa</button>
+                        <button type="button" id="btnDeleteImg" class="btn btn-danger btn-delete-img" onclick="removeImage(event)"><i class="fas fa-times"></i></button>
                     </div>
-                    <div class="text-center small text-muted fst-italic">(Vào <i class="fas fa-question-circle"></i> Hướng dẫn để bật sửa ảnh)</div>
                 </div>
 
                 <div class="form-section-box box-status">
-                    <span class="form-section-title">Trạng Thái & Đổi Xe</span>
-                    <div class="">
-                        <select id="status" class="form-select form-select-lg shadow-sm fw-bold text-primary" onchange="toggleSwapButton()">
-                            <option value="Pending">🟢 Đang chơi</option>
-                            <option value="Timeout" id="opt_timeout" hidden>🔴 Đã tính tiền (Quá giờ)</option>
-                            <option value="Free">⚪ Trống</option>
-                        </select>
-                    </div>
+                    <span class="form-section-title">1. Trạng Thái</span>
+                    
+                    <div class="status-radio-group">
+                        <input type="hidden" id="status" value="Free"> 
+                        <div class="btn-group w-100 btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="status_radio" id="st_pending" value="Pending" onchange="onStatusRadioChange(this)">
+                            <label class="btn btn-outline-success" for="st_pending"><i class="fas fa-play me-1"></i> Đang chơi</label>
 
-                    <div id="swapContainer" class="mt-3">
-                        <div class="d-flex justify-content-end mb-2">
-                            <button type="button" class="btn btn-warning btn-sm w-100" onclick="toggleSwapSection()">
-                                <i class="fas fa-exchange-alt me-1"></i> Đổi sang xe khác
-                            </button>
-                        </div>
-                        <div id="swapSection" class="swap-section">
-                            <label class="form-label fw-bold small text-primary">CHỌN XE MUỐN CHUYỂN ĐẾN:</label>
-                            <select id="targetCarSelect" class="form-select mb-2"></select>
-                            <button type="button" class="btn btn-primary w-100" onclick="executeSwap()">Xác nhận Đổi Xe</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section-box box-time">
-                    <span class="form-section-title">Quản lý Thời gian</span>
-                    <div class="row">
-                        <div class="col-6">
-                            <label class="form-label text-muted fw-bold small">GIỜ VÀO</label>
-                            <div class="time-input-group">
-                                <input type="number" id="start_h" class="form-control time-input-box" placeholder="H" min="0" max="23">
-                                <span class="time-separator">:</span>
-                                <input type="number" id="start_m" class="form-control time-input-box" placeholder="M" min="0" max="59">
-                            </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="setNow('start')"><i class="fas fa-clock me-1"></i>Hiện tại</button>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label text-muted fw-bold small">GIỜ RA</label>
-                            <div class="time-input-group">
-                                <input type="number" id="end_h" class="form-control time-input-box" placeholder="H" min="0" max="23">
-                                <span class="time-separator">:</span>
-                                <input type="number" id="end_m" class="form-control time-input-box" placeholder="M" min="0" max="59">
-                            </div>
+                            <input type="radio" class="btn-check" name="status_radio" id="st_free" value="Free" onchange="onStatusRadioChange(this)">
+                            <label class="btn btn-outline-secondary" for="st_free"><i class="fas fa-stop me-1"></i> Trống</label>
                             
+                            <input type="radio" class="btn-check" name="status_radio" id="st_timeout" value="Timeout" onchange="onStatusRadioChange(this)">
+                            <label class="btn btn-outline-danger" for="st_timeout" id="lbl_timeout" style="display:none">Quá giờ</label>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-section-box payment-block">
-                    <span class="form-section-title">Thanh Toán & Tính Tiền</span>
-                    <div class="mb-3">
-                        <label class="form-label text-success fw-bold small">PHÚT ĐÃ CHƠI / THANH TOÁN</label>
-                        <div class="input-group shadow-sm">
-                            <input type="number" id="paied_time" class="form-control form-control-lg fw-bold" placeholder="Nhập phút...">
-                            <span class="input-group-text">Phút</span>
+                <div class="row g-2 flex-shrink-0">
+                    <div class="col-7">
+                        <div class="form-section-box box-time h-100">
+                            <span class="form-section-title">2. Thời gian</span>
+                            <div class="row g-1">
+                                <div class="col-6">
+                                    <label class="form-label text-muted fw-bold">VÀO</label>
+                                    <div class="time-input-group">
+                                        <input type="number" id="start_h" class="form-control time-input-box p-0" placeholder="H">
+                                        <span class="small">:</span>
+                                        <input type="number" id="start_m" class="form-control time-input-box p-0" placeholder="M">
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-1 py-0" style="font-size: 0.7rem;" onclick="setNow('start')">Hiện tại</button>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-muted fw-bold">RA</label>
+                                    <div class="time-input-group">
+                                        <input type="number" id="end_h" class="form-control time-input-box p-0" placeholder="H">
+                                        <span class="small">:</span>
+                                        <input type="number" id="end_m" class="form-control time-input-box p-0" placeholder="M">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label text-success fw-bold small mb-0">TẠM TÍNH</label>
-                            <button type="button" id="btn_checkout" class="btn btn-sm btn-danger rounded shadow-sm fw-bold" onclick="calculateCheckout()">
-                                <i class="fas fa-calculator me-1"></i> Tính tiền (Trả sau)
+                    <div class="col-5">
+                        <div class="form-section-box payment-block h-100">
+                            <span class="form-section-title">3. Tính Tiền</span>
+                            <div class="mb-2">
+                                <label class="form-label text-success fw-bold">PHÚT</label>
+                                <input type="number" id="paied_time" class="form-control form-control-sm fw-bold text-center" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="form-label text-success fw-bold">TIỀN</label>
+                                <input type="text" id="Money" class="form-control form-control-sm fw-bold text-success border-success p-1" readonly style="background: #fff; font-size: 0.8rem;" value="0đ">
+                            </div>
+                            <button type="button" id="btn_checkout" class="btn btn-sm btn-danger w-100 mt-1 py-0 shadow-sm fw-bold" style="font-size: 0.7rem;" onclick="calculateCheckout()">
+                                <i class="fas fa-calculator me-1"></i> Tính
                             </button>
-                        </div>
-                        <div class="input-group shadow-sm">
-                            <span class="input-group-text bg-success text-white border-success"><i class="fas fa-money-bill-wave"></i></span>
-                            <input type="text" id="Money" class="form-control form-control-lg fw-bold text-success border-success" readonly style="background: #fff;" value="0 VNĐ">
                         </div>
                     </div>
                 </div>
 
                 <div class="form-section-box box-batch">
-                    <span class="form-section-title">Thao tác hàng loạt</span>
-                    <label class="form-label text-muted fw-bold small">ÁP DỤNG CẤU HÌNH TRÊN CHO:</label>
+                    <span class="form-section-title">4. Áp dụng thêm cho</span>
                     <div id="multiSelectContainer" class="multi-select-container"></div>
-                    <div class="form-text small text-end"><i class="fas fa-info-circle"></i> Chỉ hiển thị các xe TRỐNG và đang BẬT</div>
                 </div>
+            </div>
 
-                <div class="d-grid pb-3">
-                    <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow fw-bold py-3"><i class="fas fa-save me-2"></i>LƯU THAY ĐỔI</button>
+            <div class="car-form-fixed-footer">
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary rounded-pill shadow fw-bold py-2"><i class="fas fa-save me-2"></i>LƯU THAY ĐỔI</button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let carOffcanvas;
         let settingsModal;
@@ -324,17 +498,141 @@
         let visibleCarIds = [];
         let systemPrice = 0;
         let isGlobalImgEdit = false; 
+        let isFirstLoad = true;
+
+        // --- CÁC BIẾN CHO SWAP MODE ---
+        let isSwapMode = false;
+        let swapSourceId = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             carOffcanvas = new bootstrap.Offcanvas(document.getElementById('carOffcanvas'));
             settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
+            
             loadCars(); 
             setInterval(loadCars, 30000);
 
             document.getElementById("paied_time").addEventListener("input", calculateMoney);
         });
 
-        // --- HÀM XỬ LÝ NÚT BẬT SỬA ẢNH TOÀN CỤC ---
+        // --- HÀM XỬ LÝ CLICK VÀO CARD XE ---
+        function handleCardClick(carId) {
+            // Tìm xe trong global data thay vì parse string
+            const car = globalCarsData.find(c => c.id === carId);
+            if (!car) return;
+            
+            if (isSwapMode) {
+                // Nếu đang ở chế độ đổi xe
+                if (car.id === swapSourceId) {
+                    return; // Click vào chính nó -> ko làm gì
+                }
+                if (car.status === "Free") {
+                    // Click vào xe trống hợp lệ -> Xử lý đổi
+                    selectTargetCar(car);
+                }
+            } else {
+                // Chế độ bình thường -> Mở Editor
+                openEditor(car);
+            }
+        }
+
+        // --- BẮT ĐẦU CHẾ ĐỘ ĐỔI XE ---
+        function startSwapMode(sourceId) {
+            isSwapMode = true;
+            swapSourceId = sourceId;
+
+            // Reset lại nút Hủy nếu nó đang ở trạng thái loading từ lần trước
+            const cancelBtn = document.getElementById("btnCancelSwap");
+            cancelBtn.innerHTML = '<i class="fas fa-times me-1"></i> HỦY';
+            cancelBtn.className = "btn btn-danger btn-sm rounded-pill fw-bold px-4";
+            cancelBtn.disabled = false;
+
+            // Update UI styles
+            document.body.classList.add("swap-active");
+            document.getElementById("swapControlBar").classList.add("active");
+
+            // Loop visual updates
+            globalCarsData.forEach(car => {
+                const card = document.getElementById(`car-card-${car.id}`);
+                if (!card) return;
+
+                card.classList.remove("swap-source", "swap-target-valid"); // Reset cũ
+
+                if (car.id === sourceId) {
+                    card.classList.add("swap-source");
+                } else if (car.status === "Free" && isCarVisible(car.id)) {
+                    card.classList.add("swap-target-valid");
+                }
+            });
+        }
+
+        // --- HỦY CHẾ ĐỘ ĐỔI XE ---
+        function cancelSwapMode() {
+            isSwapMode = false;
+            swapSourceId = null;
+
+            document.body.classList.remove("swap-active");
+            document.getElementById("swapControlBar").classList.remove("active");
+            
+            // Xóa các class highlight
+            document.querySelectorAll(".swap-source, .swap-target-valid").forEach(el => {
+                el.classList.remove("swap-source", "swap-target-valid");
+            });
+        }
+
+        // --- CHỌN XE ĐÍCH VÀ XÁC NHẬN ---
+        function selectTargetCar(targetCar) {
+            if (!swapSourceId) return;
+
+            const targetName = formatCarNameShort(targetCar);
+            
+            if (confirm(`Chuyển sang xe: ${targetName}?`)) {
+                
+                // --- UPDATE UI: NÚT HỦY THÀNH ĐANG XỬ LÝ ---
+                const cancelBtn = document.getElementById("btnCancelSwap");
+                const oldHtml = cancelBtn.innerHTML; 
+                const oldClass = cancelBtn.className;
+                
+                // Biến đổi nút thành "ĐANG XỬ LÝ..."
+                cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> ĐANG XỬ LÝ...';
+                cancelBtn.classList.remove("btn-danger");
+                cancelBtn.classList.add("btn-secondary");
+                cancelBtn.disabled = true;
+                
+                // Gọi API
+                const formData = new FormData();
+                formData.append("source_id", swapSourceId);
+                formData.append("target_id", targetCar.id);
+
+                fetch("/swap_car/", { method: "POST", headers: { "X-CSRFToken": getCookie("csrftoken") }, body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Đổi xe thành công!");
+                        cancelSwapMode(); // Thoát chế độ
+                        isFirstLoad = true; 
+                        loadCars();
+                    } else {
+                        alert("Lỗi: " + data.error);
+                        // Revert lại nút Hủy nếu lỗi
+                        cancelBtn.innerHTML = oldHtml;
+                        cancelBtn.className = oldClass;
+                        cancelBtn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    alert("Lỗi kết nối!");
+                    // Revert lại nút Hủy nếu lỗi
+                    cancelBtn.innerHTML = oldHtml;
+                    cancelBtn.className = oldClass;
+                    cancelBtn.disabled = false;
+                });
+            }
+        }
+
+        function onStatusRadioChange(radio) {
+            document.getElementById("status").value = radio.value;
+        }
+
         function toggleGlobalImageEdit() {
             isGlobalImgEdit = document.getElementById('globalImgEditToggle').checked;
         }
@@ -390,9 +688,9 @@
             document.getElementById("paied_time").value = totalMinutes;
             calculateMoney();
 
-            document.getElementById("opt_timeout").hidden = false;
             document.getElementById("status").value = "Timeout";
-            toggleSwapButton();
+            document.getElementById("st_timeout").checked = true;
+            document.getElementById("lbl_timeout").style.display = "inline-block"; 
         }
 
         function isCarVisible(id) {
@@ -444,6 +742,7 @@
             .then(data => {
                 if (data.success) {
                     settingsModal.hide(); 
+                    isFirstLoad = true; 
                     loadCars(); 
                 } else {
                     alert("Lỗi khi lưu cấu hình: " + data.error);
@@ -531,6 +830,9 @@
         }
 
         function loadCars() {
+            // Nếu đang ở chế độ đổi xe thì KHÔNG reload để tránh mất trạng thái
+            if (isSwapMode) return;
+
             fetch("/car_data/").then(res => res.json()).then(data => {
                 systemPrice = data.global_price || 0;
                 document.getElementById('global_price').value = systemPrice || "";
@@ -540,12 +842,78 @@
                     if (typeA.localeCompare(typeB) !== 0) return typeA.localeCompare(typeB);
                     return a.name.localeCompare(b.name);
                 });
-                globalCarsData = data.cars; renderDashboard(); 
+                
+                globalCarsData = data.cars; 
+                
+                const visibleCount = globalCarsData.filter(c => c.is_using).length;
+                const currentDomCount = document.querySelectorAll('.car-card').length;
+
+                if (isFirstLoad || visibleCount !== currentDomCount) {
+                    renderDashboard(); 
+                    isFirstLoad = false;
+                } else {
+                    updateCarStatusOnly();
+                }
+
             }).catch(err => console.error("Lỗi:", err));
+        }
+
+        function updateCarStatusOnly() {
+            const now = new Date();
+            
+            globalCarsData.forEach(car => {
+                if (!isCarVisible(car.id)) return;
+                
+                const cardEl = document.getElementById(`car-card-${car.id}`);
+                if (!cardEl) return;
+
+                let cardClass = "card-free", statusText = "Trống";
+                let tempStatus = car.status;
+                if (tempStatus === "Pending") { cardClass = "card-pending"; statusText = "Đang chơi"; }
+                if (car.end_time && new Date(car.end_time) <= now) tempStatus = "Timeout";
+                if (tempStatus === "Timeout") { cardClass = "card-timeout"; statusText = "Quá giờ"; }
+
+                let timeDisplay = "";
+                if (car.end_time) {
+                    timeDisplay = `Kết thúc: ${formatTimeDisplay(car.end_time)}`;
+                } else if (tempStatus === "Pending" && car.start_time) {
+                    timeDisplay = `Vào: ${formatTimeDisplay(car.start_time)}`;
+                }
+
+                // Cập nhật class
+                cardEl.className = `car-card ${cardClass}`;
+                
+                // Cập nhật text badge
+                const badge = cardEl.querySelector('.car-status-badge');
+                if (badge.innerText !== statusText) badge.innerText = statusText;
+
+                // Cập nhật thời gian
+                const timeEl = cardEl.querySelector('.car-end-time');
+                if (timeEl.innerText !== timeDisplay) timeEl.innerText = timeDisplay;
+                
+                // Cập nhật lại onclick mới: KHÔNG DÙNG JSON STRING NỮA MÀ DÙNG ID
+                cardEl.setAttribute('onclick', `handleCardClick(${car.id})`);
+                
+                // Cập nhật nút Swap (ẩn hiện tùy trạng thái)
+                let swapBtnHtml = "";
+                if (car.status === "Pending" || car.status === "Timeout") {
+                    swapBtnHtml = `<div class="car-swap-btn" onclick="event.stopPropagation(); startSwapMode(${car.id})"><i class="fas fa-exchange-alt"></i></div>`;
+                }
+                
+                // Tìm xem nút swap đã có chưa
+                let existingBtn = cardEl.querySelector('.car-swap-btn');
+                if (swapBtnHtml && !existingBtn) {
+                      cardEl.insertAdjacentHTML('afterbegin', swapBtnHtml);
+                } else if (!swapBtnHtml && existingBtn) {
+                    existingBtn.remove();
+                }
+            });
         }
 
         function renderDashboard() {
             const container = document.getElementById("car-container"); container.innerHTML = "";
+            const navContainer = document.getElementById("quickNav"); navContainer.innerHTML = "";
+
             const now = new Date();
             const groupedCars = {};
             
@@ -559,12 +927,23 @@
             if (Object.keys(groupedCars).length === 0) { container.innerHTML = `<div class="text-center text-muted mt-5">Không có xe hiển thị.</div>`; return; }
 
             for (const [type, cars] of Object.entries(groupedCars)) {
-                const section = document.createElement("div"); section.className = "group-section";
-                const count = cars.length;
+                const sectionId = 'group-' + type.replace(/\s+/g, '-');
+
+                const section = document.createElement("div"); 
+                section.className = "group-section";
+                section.id = sectionId;
+
+                const icon = getIconForCar(type);
+                navContainer.innerHTML += `
+                    <a href="#${sectionId}" class="quick-nav-btn" title="${type}">
+                        <i class="fas ${icon}"></i>
+                        <span>${type}</span>
+                    </a>
+                `;
+
                 section.innerHTML = `
                     <div class="type-header">
-                        <span><i class="fas ${getIconForCar(type)} me-2 text-primary"></i> ${type}</span>
-                        
+                        <span><i class="fas ${icon} me-2 text-primary"></i> ${type}</span>
                     </div>`;
 
                 const row = document.createElement("div"); row.className = "row g-3";
@@ -586,56 +965,26 @@
                         timeDisplay = `Vào: ${formatTimeDisplay(car.start_time)}`;
                     }
 
-                    row.innerHTML += `<div class="col-6 col-md-4 col-lg-3"><div class="car-card ${cardClass}" onclick='openEditor(${JSON.stringify(car).replace(/'/g, "&#39;")})'>${thumbHtml}<div class="car-name">${fullName}</div><div class="car-end-time">${timeDisplay}</div><div class="car-status-badge">${statusText}</div></div></div>`;
+                    // --- Nút Swap ---
+                    let swapBtnHtml = "";
+                    if (car.status === "Pending" || car.status === "Timeout") {
+                        swapBtnHtml = `<div class="car-swap-btn" onclick="event.stopPropagation(); startSwapMode(${car.id})"><i class="fas fa-exchange-alt"></i></div>`;
+                    }
+                    
+                    // LƯU Ý: Sửa lại cách truyền tham số cho handleCardClick
+                    row.innerHTML += `
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div id="car-card-${car.id}" class="car-card ${cardClass}" onclick='handleCardClick(${car.id})'>
+                            ${swapBtnHtml}
+                            ${thumbHtml}
+                            <div class="car-name">${fullName}</div>
+                            <div class="car-end-time">${timeDisplay}</div>
+                            <div class="car-status-badge">${statusText}</div>
+                        </div>
+                    </div>`;
                 });
                 section.appendChild(row); container.appendChild(section);
             }
-        }
-
-        function toggleSwapButton() {
-            const status = document.getElementById("status").value;
-            const container = document.getElementById("swapContainer");
-            if (status === "Pending" || status === "Timeout") {
-                container.style.display = "block";
-            } else {
-                container.style.display = "none";
-                document.getElementById("swapSection").style.display = "none"; 
-            }
-        }
-
-        function toggleSwapSection() {
-            const section = document.getElementById("swapSection");
-            section.style.display = (section.style.display === "none" || section.style.display === "") ? "block" : "none";
-        }
-
-        function executeSwap() {
-            const sourceId = document.getElementById("carId").value;
-            const targetId = document.getElementById("targetCarSelect").value;
-
-            if (!targetId) { alert("Vui lòng chọn xe để chuyển đến!"); return; }
-            if (!confirm("Bạn có chắc chắn muốn chuyển trạng thái sang xe này?")) return;
-
-            const formData = new FormData();
-            formData.append("source_id", sourceId);
-            formData.append("target_id", targetId);
-
-            const btn = document.querySelector("#swapSection button");
-            const oldText = btn.innerHTML;
-            btn.innerHTML = "Đang xử lý..."; btn.disabled = true;
-
-            fetch("/swap_car/", { method: "POST", headers: { "X-CSRFToken": getCookie("csrftoken") }, body: formData })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Đổi xe thành công!");
-                    carOffcanvas.hide();
-                    loadCars();
-                } else {
-                    alert("Lỗi: " + data.error);
-                }
-            })
-            .catch(err => alert("Lỗi kết nối!"))
-            .finally(() => { btn.innerHTML = oldText; btn.disabled = false; });
         }
 
         function openEditor(car) {
@@ -646,11 +995,14 @@
             document.getElementById("carId").value = car.id;
             
             if (car.status === "Timeout") {
-                document.getElementById("opt_timeout").hidden = false;
+                document.getElementById("lbl_timeout").style.display = "inline-block";
+                document.getElementById("st_timeout").checked = true;
             } else {
-                document.getElementById("opt_timeout").hidden = true;
+                document.getElementById("lbl_timeout").style.display = "none";
+                if(car.status === "Pending") document.getElementById("st_pending").checked = true;
+                else document.getElementById("st_free").checked = true;
             }
-            document.getElementById("status").value = car.status;
+            document.getElementById("status").value = car.status; 
             
             fillTimeInputs(car.start_time, 'start');
             fillTimeInputs(car.end_time, 'end');
@@ -672,40 +1024,30 @@
                 document.getElementById('btnDeleteImg').style.display = 'none';
             }
 
-            // --- QUAN TRỌNG: KIỂM TRA TRẠNG THÁI NÚT TOÀN CỤC ĐỂ KHÓA/MỞ KHÓA ẢNH ---
             const uploadWrapper = document.getElementById("uploadWrapper");
+            const boxImg = document.getElementById("boxImageSection");
+            
             if (isGlobalImgEdit) {
+                boxImg.style.display = 'block';
                 uploadWrapper.classList.remove("upload-disabled");
             } else {
+                boxImg.style.display = 'none';
                 uploadWrapper.classList.add("upload-disabled");
             }
 
-            toggleSwapButton();
-            document.getElementById("swapSection").style.display = "none"; 
-
-            const swapSelect = document.getElementById("targetCarSelect");
             const multiContainer = document.getElementById("multiSelectContainer");
-            
-            swapSelect.innerHTML = '<option value="">-- Chọn xe trống --</option>';
             multiContainer.innerHTML = ""; 
-
+            
             globalCarsData.forEach(otherCar => {
                 if (otherCar.id === car.id) return;
-                
-                if (otherCar.status === "Free" && isCarVisible(otherCar.id)) {
-                    const option = document.createElement("option");
-                    option.value = otherCar.id;
-                    option.text = `${otherCar.type} - ${otherCar.name} ${otherCar.color ? '('+otherCar.color+')' : ''}`;
-                    swapSelect.appendChild(option);
-                }
+                const itemName = `${otherCar.type} - ${otherCar.name} ${otherCar.color ? '('+otherCar.color+')' : ''}`;
+                const itemIcon = getIconForCar(otherCar.type);
 
                 if (otherCar.status === "Free" && isCarVisible(otherCar.id)) {
-                    const itemName = `${otherCar.type} - ${otherCar.name} ${otherCar.color ? '('+otherCar.color+')' : ''}`;
-                    const itemIcon = getIconForCar(otherCar.type); 
                     multiContainer.innerHTML += `<div class="car-checkbox-item"><input type="checkbox" class="form-check-input car-select-checkbox" value="${otherCar.id}" id="chk_${otherCar.id}"><label class="form-check-label w-100 stretched-link d-flex align-items-center" for="chk_${otherCar.id}"><i class="fas ${itemIcon} small-icon"></i> ${itemName}</label></div>`;
                 }
             });
-
+            
             carOffcanvas.show();
         }
 
@@ -735,7 +1077,15 @@
 
             fetch("/update_car/", { method: "POST", headers: { "X-CSRFToken": getCookie("csrftoken") }, body: formData })
             .then(res => res.json())
-            .then(data => { if (data.success) { carOffcanvas.hide(); loadCars(); } else { alert("Lỗi: " + data.error); } })
+            .then(data => { 
+                if (data.success) { 
+                    carOffcanvas.hide(); 
+                    isFirstLoad = true;
+                    loadCars(); 
+                } else { 
+                    alert("Lỗi: " + data.error); 
+                } 
+            })
             .catch(error => { console.error('Error:', error); alert("Mất kết nối server!"); })
             .finally(() => { btn.innerHTML = originalText; btn.disabled = false; });
         });
